@@ -57,7 +57,7 @@ const server = http.createServer(app);
 // Initialize Socket.io with CORS and connection settings
 const allowedOrigins = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
-    : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://10.84.186.251:5173', 'http://10.84.186.226:5173', 'https://client-two-ochre-37.vercel.app/'];
+    : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://10.84.186.251:5173', 'http://10.84.186.226:5173', 'https://client-two-ochre-37.vercel.app'];
 
 app.use(cors({
     origin: function (origin, callback) {
