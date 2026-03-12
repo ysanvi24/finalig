@@ -10,7 +10,7 @@ module.exports = defineConfig({
     workers: 1,
     reporter: 'list',
     use: {
-        baseURL: 'http://localhost:5173',
+        baseURL: 'http://127.0.0.1:5173',
         headless: true,
         screenshot: 'only-on-failure',
         trace: 'on-first-retry',

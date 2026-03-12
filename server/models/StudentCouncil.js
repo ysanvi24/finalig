@@ -7,8 +7,7 @@ const studentCouncilSchema = new mongoose.Schema({
     },
     position: {
         type: String,
-        required: true,
-        enum: ['President', 'Vice President', 'Secretary', 'Treasurer', 'Sports Head', 'Cultural Head', 'Academics Head', 'Member']
+        required: true
     },
     department: {
         type: String,

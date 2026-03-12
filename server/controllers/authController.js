@@ -1,6 +1,7 @@
 const Admin = require('../models/Admin');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { resetLoginAttempts } = require('../middleware/securityMiddleware');
 
 // @desc    Auth admin with username/password or student ID
 // @route   POST /api/auth/login
@@ -72,6 +73,12 @@ const login = async (req, res) => {
         admin.lastLogin = new Date();
         admin.loginCount = (admin.loginCount || 0) + 1;
         await admin.save();
+
+        // Reset brute-force counter on successful login
+        const ip = req.ip || req.connection.remoteAddress;
+        resetLoginAttempts(ip);
+
+        console.log(`✅ LOGIN SUCCESS: ${loginId} (${admin.role}) from ${ip}`);
 
         res.json({
             _id: admin._id,

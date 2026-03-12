@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 // Use relative URL for same-origin requests, supports both dev and production
 // In development, proxy handles /api -> localhost:5000/api
 const API_URL = import.meta.env.VITE_API_URL || '/api';
+const ADMIN_SECRET_PATH = import.meta.env.VITE_ADMIN_SECRET_PATH || 'shashwatam-control-2026';
 
 const api = axios.create({
     baseURL: API_URL,
@@ -32,16 +33,19 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         // Don't redirect if already on login page or auth routes
-        const isAuthRoute = window.location.pathname.includes('/auth/') || window.location.pathname === '/login';
+        const isAuthRoute = window.location.pathname.includes('/login');
         
         if (error.response?.status === 401) {
             // Token expired or invalid
             console.log('🔒 401 Unauthorized - Clearing session');
             localStorage.removeItem('adminToken');
             localStorage.removeItem('adminUser');
+            localStorage.removeItem('sessionFingerprint');
+            localStorage.removeItem('sessionStart');
             
             if (!isAuthRoute) {
-                window.location.href = '/auth/login';
+                // Redirect to secret login path
+                window.location.href = `/${ADMIN_SECRET_PATH}/login`;
                 toast.error('Session expired. Please login again.');
             }
         } else if (error.response?.status === 403) {

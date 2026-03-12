@@ -1,0 +1,35 @@
+# Artillery Quick Load Test — 30 second burst to verify stability
+config:
+  target: "http://127.0.0.1:5000"
+  phases:
+    - duration: 10
+      arrivalRate: 20
+      name: "Warm-up 20 req/s"
+    - duration: 10
+      arrivalRate: 20
+      rampTo: 100
+      name: "Ramp to 100 req/s"
+    - duration: 10
+      arrivalRate: 100
+      name: "Sustained 100 req/s"
+  defaults:
+    headers:
+      Accept: "application/json"
+
+scenarios:
+  - name: "All public APIs"
+    flow:
+      - get:
+          url: "/api/health"
+      - get:
+          url: "/api/matches"
+      - get:
+          url: "/api/departments"
+      - get:
+          url: "/api/leaderboard"
+      - get:
+          url: "/api/student-council"
+      - get:
+          url: "/api/highlights"
+      - get:
+          url: "/api/about"

@@ -1,0 +1,272 @@
+{
+  "timestamp": "2026-03-10T09:53:09.228Z",
+  "summary": {
+    "total": 52,
+    "passed": 52,
+    "warnings": 0,
+    "failed": 0,
+    "passRate": "100.0%"
+  },
+  "results": [
+    {
+      "name": "Backend /alive endpoint responds",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "API returns structured errors (not raw stack traces)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Unknown API routes return 404 (not crash)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "CORS headers present on API responses",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Rate limiter returns 429 on excessive requests",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "MongoDB connected (matches endpoint returns data)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Socket.io endpoint responds to polling",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "ErrorBoundary component exists and has componentDidCatch",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Sentry SDK integrated in frontend",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Sentry SDK integrated in backend",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Global unhandledrejection + error listeners exist",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Backend has graceful shutdown handlers",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Async route handlers wrapped (asyncWrap utility exists)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "No raw process.exit(0) outside graceful shutdown",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "API response time < 2000ms (matches endpoint)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Gzip/Brotli compression enabled on API responses",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Vite build produces optimized chunks",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Vite manual chunks configured for code splitting",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Source maps set to hidden (Sentry only)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "console.log stripped in production build (terser)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Core Web Vitals (CLS, LCP, INP, FCP, TTFB) tracked",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "CSS code splitting enabled",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Large images not committed to source (check uploads dir)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "MongoDB connection string present",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Server-side caching middleware exists",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Three.js is code-split (not in main bundle)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "index.html has proper meta tags",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "theme-color meta matches शाश्वतम् theme (#110a28)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Open Graph tags present for social sharing",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "JSON-LD structured data present",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Canonical URL specified",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Robots meta tag present",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Web App Manifest exists",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "SPA fallback configured in production (server.js)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Nginx config exists for production static serving",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Dockerfiles exist and are valid",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Deployment configuration files present",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "No hardcoded localhost URLs in production-facing code",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Helmet security headers configured",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "No secrets committed to source",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "HTML has lang=\"en\" attribute",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Viewport meta configured correctly",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Buttons use min-h-[44px] or equivalent touch targets",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Theme CSS variables define sufficient contrast",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Fonts loaded with appropriate strategy",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "prefers-reduced-motion respected",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Mobile optimization CSS exists",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "Tailwind configured with responsive breakpoints",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "DaisyUI themes configured",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "ErrorBoundary uses inline styles (crash-proof)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "axe-core installed for accessibility testing",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "pa11y installed for automated accessibility testing",
+      "status": "pass",
+      "severity": "error"
+    }
+  ]
+}

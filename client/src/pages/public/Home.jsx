@@ -4,10 +4,13 @@ import socket from '../../socket';
 import PublicNavbar from '../../components/PublicNavbar';
 import Footer from '../../components/Footer';
 import MatchCard from '../../components/MatchCard';
+import SportBadge from '../../components/SportBadge';
 import { MatchCardSkeleton, HighlightSkeleton } from '../../components/SkeletonLoader';
-import { SPORT_ICONS, SPORTS } from '../../lib/constants';
+import { MATCH_SPORTS, getSportLabel } from '../../config/sportsRegistry';
+const SPORTS = MATCH_SPORTS.map(s => s.id);
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Film, FileText, Trophy, Sparkles, RefreshCw, ExternalLink, ChevronLeft, ChevronRight, Award, X } from 'lucide-react';
+import { Camera, Film, FileText, Trophy, Sparkles, RefreshCw, ExternalLink, ChevronLeft, ChevronRight, Award, X, Medal, CalendarDays, CheckCircle2, Dumbbell, Building2 } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 // Timezone-safe local date helper (avoids UTC offset issues with toISOString)
 const getLocalDateStr = (date = new Date()) => {
@@ -18,12 +21,14 @@ const getLocalDateStr = (date = new Date()) => {
 };
 
 const Home = () => {
+    const { theme } = useTheme();
     const [matches, setMatches] = useState([]);
     const [highlights, setHighlights] = useState({});
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [selectedSport, setSelectedSport] = useState('ALL');
     const [selectedStatus, setSelectedStatus] = useState('ALL');
+    const [selectedDept, setSelectedDept] = useState('ALL');
     const [lastUpdated, setLastUpdated] = useState(null);
     const [highlightDate, setHighlightDate] = useState(getLocalDateStr());
     const [availableDates, setAvailableDates] = useState([]);
@@ -89,11 +94,9 @@ const Home = () => {
     useEffect(() => {
         fetchData();
 
-        // ── LOCAL state updates from socket payloads (NO refetch) ──
         const handleMatchCreated = (match) => {
             if (!match?._id) return;
             setMatches(prev => {
-                // Prevent duplicate
                 if (prev.some(m => m._id === match._id)) return prev;
                 return sortMatches([match, ...prev]);
             });
@@ -104,7 +107,7 @@ const Home = () => {
             if (!match?._id) return;
             setMatches(prev => {
                 const idx = prev.findIndex(m => m._id === match._id);
-                if (idx === -1) return sortMatches([match, ...prev]); // New match we hadn't seen
+                if (idx === -1) return sortMatches([match, ...prev]);
                 const updated = [...prev];
                 updated[idx] = { ...updated[idx], ...match };
                 return sortMatches(updated);
@@ -119,7 +122,6 @@ const Home = () => {
             setLastUpdated(new Date());
         };
 
-        // Highlight events still refetch (rare events, lightweight)
         const debouncedHighlightFetch = () => {
             clearTimeout(debounceRef.current);
             debounceRef.current = setTimeout(() => fetchHighlightsForDate(highlightDate), 600);
@@ -132,12 +134,10 @@ const Home = () => {
         socket.on('highlightUpdated', debouncedHighlightFetch);
         socket.on('highlightDeleted', debouncedHighlightFetch);
 
-        // ── Handle reconnection: refetch to catch missed events ──
         const handleReconnect = () => {
             console.log('🔄 Socket reconnected — syncing missed events');
             fetchData(true);
         };
-        // socket.io v4: 'reconnect' fires on the Manager, not the Socket
         socket.io.on('reconnect', handleReconnect);
 
         return () => {
@@ -152,13 +152,12 @@ const Home = () => {
         };
     }, [fetchData, sortMatches, highlightDate, fetchHighlightsForDate]);
 
-    // Re-fetch highlights when date changes (without reloading matches)
     useEffect(() => {
         fetchHighlightsForDate(highlightDate);
     }, [highlightDate, fetchHighlightsForDate]);
 
     const shiftDate = (days) => {
-        const d = new Date(highlightDate + 'T12:00:00'); // noon to avoid DST edge cases
+        const d = new Date(highlightDate + 'T12:00:00');
         d.setDate(d.getDate() + days);
         const newDate = getLocalDateStr(d);
         if (newDate <= todayStr) {
@@ -178,9 +177,29 @@ const Home = () => {
         return matches.filter(m => {
             if (selectedSport !== 'ALL' && m.sport !== selectedSport) return false;
             if (selectedStatus !== 'ALL' && m.status !== selectedStatus) return false;
+            if (selectedDept !== 'ALL') {
+                const teamACode = m.teamA?.shortCode || m.teamA?.name || '';
+                const teamBCode = m.teamB?.shortCode || m.teamB?.name || '';
+                const teamAId = m.teamA?._id || m.teamA;
+                const teamBId = m.teamB?._id || m.teamB;
+                if (teamACode !== selectedDept && teamBCode !== selectedDept &&
+                    teamAId !== selectedDept && teamBId !== selectedDept) return false;
+            }
             return true;
         });
-    }, [matches, selectedSport, selectedStatus]);
+    }, [matches, selectedSport, selectedStatus, selectedDept]);
+
+    const matchDepts = useMemo(() => {
+        const deptMap = new Map();
+        matches.forEach(m => {
+            [m.teamA, m.teamB].forEach(team => {
+                if (team && typeof team === 'object' && team.shortCode) {
+                    deptMap.set(team.shortCode, team.shortCode);
+                }
+            });
+        });
+        return Array.from(deptMap.values()).sort();
+    }, [matches]);
 
     const stats = useMemo(() => ({
         total: matches.length,
@@ -193,8 +212,18 @@ const Home = () => {
     const picOfDay = highlights.picOfTheDay || null;
     const articleOfDay = highlights.articleOfTheDay || null;
 
+    // Helper: highlight card style
+    const hlCard = {
+        backgroundColor: theme.bgSecondary,
+        border: `1px solid ${theme.borderDefault}`,
+    };
+    const hlEmpty = {
+        border: `2px dashed ${theme.borderDefault}`,
+        backgroundColor: theme.accentSubtle,
+    };
+
     return (
-        <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
+        <div className="min-h-screen shashwatam-bg" style={{ backgroundColor: theme.bgPrimary }}>
             <PublicNavbar />
 
             <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-16">
@@ -203,16 +232,17 @@ const Home = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center mb-8 pt-2">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-medium mb-3">
-                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-3"
+                        style={{ backgroundColor: theme.accentSubtle, color: theme.accent }}>
+                        <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: theme.accent }} />
                         Season 2025-26
                     </div>
-                    <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-2">
+                    <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-2" style={{ color: theme.textPrimary }}>
                         Institute Gathering
                         <br className="sm:hidden" />
                         {' '}
                     </h1>
-                    <p className="text-slate-500 text-sm max-w-md mx-auto">
+                    <p className="text-sm max-w-md mx-auto" style={{ color: theme.textMuted }}>
                         Follow all the action from the inter-department championship
                     </p>
                 </motion.div>
@@ -220,54 +250,56 @@ const Home = () => {
                 {/* Quick Stats */}
                 <div className="grid grid-cols-4 gap-2 sm:gap-3 mb-8">
                     {[
-                        { label: 'Matches', value: stats.total, icon: '🏅', color: 'from-blue-500 to-blue-600' },
-                        { label: 'Upcoming', value: stats.scheduled, icon: '📅', color: 'from-amber-500 to-amber-600' },
-                        { label: 'Results', value: stats.completed, icon: '✅', color: 'from-emerald-500 to-emerald-600' },
-                        { label: 'Sports', value: stats.sports, icon: '🎯', color: 'from-purple-500 to-purple-600' }
+                        { label: 'Matches', value: stats.total, icon: <Medal className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: theme.accent }} />, color: 'from-amber-400 to-amber-600' },
+                        { label: 'Upcoming', value: stats.scheduled, icon: <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6 text-amber-300" />, color: 'from-amber-300 to-amber-500' },
+                        { label: 'Results', value: stats.completed, icon: <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400" />, color: 'from-emerald-400 to-emerald-600' },
+                        { label: 'Sports', value: stats.sports, icon: <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />, color: 'from-purple-400 to-purple-600' }
                     ].map((stat, i) => (
                         <motion.div key={stat.label}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: i * 0.08 }}
-                            className="relative overflow-hidden bg-white border border-slate-200 rounded-xl p-3 sm:p-4 text-center">
+                            className="relative overflow-hidden rounded-xl p-3 sm:p-4 text-center"
+                            style={{ backgroundColor: theme.bgSecondary, border: `1px solid ${theme.borderDefault}` }}>
                             <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${stat.color}`} />
-                            <div className="text-lg sm:text-xl mb-0.5">{stat.icon}</div>
-                            <div className="text-xl sm:text-2xl font-bold text-slate-900">{loading ? '-' : stat.value}</div>
-                            <div className="text-[10px] sm:text-xs font-medium text-slate-400 uppercase tracking-wide">{stat.label}</div>
+                            <div className="flex justify-center mb-1">{stat.icon}</div>
+                            <div className="text-xl sm:text-2xl font-bold" style={{ color: theme.textPrimary }}>{loading ? '-' : stat.value}</div>
+                            <div className="text-[10px] sm:text-xs font-medium uppercase tracking-wide" style={{ color: theme.textMuted }}>{stat.label}</div>
                         </motion.div>
                     ))}
                 </div>
 
-                {/* ========== TODAY'S HIGHLIGHTS — ALWAYS VISIBLE ========== */}
+                {/* ========== TODAY'S HIGHLIGHTS ========== */}
                 <motion.section
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
                     className="mb-10">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                            <div className="p-1.5 bg-amber-100 rounded-lg">
-                                <Sparkles className="w-4 h-4 text-amber-600" />
+                        <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: theme.textPrimary }}>
+                            <div className="p-1.5 rounded-lg" style={{ backgroundColor: theme.accentSubtle }}>
+                                <Sparkles className="w-4 h-4" style={{ color: theme.accent }} />
                             </div>
                             Highlights
                         </h2>
                         {lastUpdated && (
                             <button onClick={() => fetchData(true)}
                                 disabled={refreshing}
-                                className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-blue-500 transition-colors disabled:opacity-50">
+                                className="flex items-center gap-1.5 text-xs transition-colors disabled:opacity-50"
+                                style={{ color: theme.textMuted }}>
                                 <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} />
                                 {refreshing ? 'Updating...' : 'Refresh'}
                             </button>
                         )}
                     </div>
 
-                    {/* Date Selector — responsive, never overflows */}
+                    {/* Date Selector */}
                     <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-5">
                         <button
                             onClick={() => shiftDate(-1)}
-                            className="p-2 rounded-lg bg-white border border-slate-200 text-slate-500 hover:border-blue-300 hover:text-blue-500 transition-colors flex-shrink-0"
-                            aria-label="Previous day"
-                        >
+                            className="p-2 rounded-lg transition-colors flex-shrink-0"
+                            style={{ backgroundColor: theme.bgSecondary, border: `1px solid ${theme.borderDefault}`, color: theme.textMuted }}
+                            aria-label="Previous day">
                             <ChevronLeft className="w-4 h-4" />
                         </button>
                         <div className="flex items-center gap-2 min-w-0">
@@ -276,25 +308,26 @@ const Home = () => {
                                 value={highlightDate}
                                 max={todayStr}
                                 onChange={(e) => setHighlightDate(e.target.value)}
-                                className="px-2 sm:px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs sm:text-sm text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer max-w-[150px] sm:max-w-none"
+                                className="px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm outline-none cursor-pointer max-w-[150px] sm:max-w-none"
+                                style={{ backgroundColor: theme.bgSecondary, border: `1px solid ${theme.borderDefault}`, color: theme.textSecondary }}
                             />
-                            <span className="text-xs sm:text-sm font-semibold text-slate-700 whitespace-nowrap">
+                            <span className="text-xs sm:text-sm font-semibold whitespace-nowrap" style={{ color: theme.textSecondary }}>
                                 {formatDisplayDate(highlightDate)}
                             </span>
                         </div>
                         <button
                             onClick={() => shiftDate(1)}
                             disabled={highlightDate >= todayStr}
-                            className="p-2 rounded-lg bg-white border border-slate-200 text-slate-500 hover:border-blue-300 hover:text-blue-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
-                            aria-label="Next day"
-                        >
+                            className="p-2 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
+                            style={{ backgroundColor: theme.bgSecondary, border: `1px solid ${theme.borderDefault}`, color: theme.textMuted }}
+                            aria-label="Next day">
                             <ChevronRight className="w-4 h-4" />
                         </button>
                         {highlightDate !== todayStr && (
                             <button
                                 onClick={() => setHighlightDate(todayStr)}
-                                className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors flex-shrink-0"
-                            >
+                                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex-shrink-0"
+                                style={{ backgroundColor: theme.accent, color: theme.bgPrimary }}>
                                 Today
                             </button>
                         )}
@@ -306,38 +339,42 @@ const Home = () => {
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.98 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="bg-gradient-to-br from-purple-50 via-violet-50 to-pink-50 border border-purple-200 rounded-2xl p-5 sm:p-6 hover:shadow-lg transition-shadow">
+                                className="rounded-2xl p-5 sm:p-6 hover:shadow-lg transition-shadow"
+                                style={hlCard}>
                                 <div className="flex items-center gap-2 mb-3">
-                                    <div className="p-1.5 bg-purple-100 rounded-lg">
-                                        <Film className="w-4 h-4 text-purple-600" />
+                                    <div className="p-1.5 rounded-lg" style={{ backgroundColor: theme.accentSubtle }}>
+                                        <Film className="w-4 h-4" style={{ color: theme.accent }} />
                                     </div>
-                                    <span className="text-sm font-bold text-purple-700">Reel of the Day</span>
+                                    <span className="text-sm font-bold" style={{ color: theme.accent }}>Reel of the Day</span>
                                     {reelOfDay.department && (
-                                        <span className="ml-auto text-[10px] font-semibold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                                        <span className="ml-auto text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-0.5"
+                                            style={{ backgroundColor: theme.accentSubtle, color: theme.accent }}>
                                             <Award className="w-2.5 h-2.5" />
-                                            {typeof reelOfDay.department === 'object' ? (reelOfDay.department.shortCode || reelOfDay.department.name) : reelOfDay.department}
+                                            {(reelOfDay.department && typeof reelOfDay.department === 'object') ? (reelOfDay.department.shortCode || reelOfDay.department.name) : reelOfDay.department}
                                         </span>
                                     )}
                                 </div>
                                 {reelOfDay.caption && (
-                                    <p className="text-sm text-slate-600 mb-4 line-clamp-2">{reelOfDay.caption}</p>
+                                    <p className="text-sm mb-4 line-clamp-2" style={{ color: theme.textSecondary }}>{reelOfDay.caption}</p>
                                 )}
                                 {reelOfDay.instagramUrl && (
                                     <a href={reelOfDay.instagramUrl} target="_blank" rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-purple-600 text-white rounded-xl text-sm font-medium hover:bg-purple-700 transition-all shadow-sm hover:shadow-md active:scale-95">
+                                        className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium transition-all shadow-sm hover:shadow-md active:scale-95"
+                                        style={{ backgroundColor: theme.accent, color: theme.bgPrimary }}>
                                         <Film className="w-3.5 h-3.5" /> Watch on Instagram
                                         <ExternalLink className="w-3 h-3 ml-0.5 opacity-60" />
                                     </a>
                                 )}
                             </motion.div>
                         ) : (
-                            <div className="border-2 border-dashed border-purple-200 rounded-2xl p-6 sm:p-8 text-center bg-purple-50/30">
-                                <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                                    <Film className="w-7 h-7 text-purple-300" />
+                            <div className="rounded-2xl p-6 sm:p-8 text-center" style={hlEmpty}>
+                                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
+                                    style={{ backgroundColor: theme.accentSubtle }}>
+                                    <Film className="w-7 h-7" style={{ color: theme.textMuted }} />
                                 </div>
-                                <h3 className="font-semibold text-slate-600 mb-1">Reel of the Day</h3>
-                                <p className="text-sm text-slate-400">No reel posted today yet</p>
-                                <p className="text-xs text-slate-300 mt-1.5">Check back for match highlights! 🎬</p>
+                                <h3 className="font-semibold mb-1" style={{ color: theme.textSecondary }}>Reel of the Day</h3>
+                                <p className="text-sm" style={{ color: theme.textMuted }}>No reel posted today yet</p>
+                                <p className="text-xs mt-1.5" style={{ color: theme.textMuted }}>Check back for match highlights! 🎬</p>
                             </div>
                         )}
 
@@ -346,38 +383,42 @@ const Home = () => {
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.98 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 border border-amber-200 rounded-2xl p-5 sm:p-6 hover:shadow-lg transition-shadow overflow-hidden">
+                                className="rounded-2xl p-5 sm:p-6 hover:shadow-lg transition-shadow overflow-hidden"
+                                style={hlCard}>
                                 <div className="flex items-center gap-2 mb-3">
-                                    <div className="p-1.5 bg-amber-100 rounded-lg">
-                                        <Camera className="w-4 h-4 text-amber-600" />
+                                    <div className="p-1.5 rounded-lg" style={{ backgroundColor: theme.accentSubtle }}>
+                                        <Camera className="w-4 h-4" style={{ color: theme.accent }} />
                                     </div>
-                                    <span className="text-sm font-bold text-amber-700">Pic of the Day</span>
+                                    <span className="text-sm font-bold" style={{ color: theme.accent }}>Pic of the Day</span>
                                     {picOfDay.department && (
-                                        <span className="ml-auto text-[10px] font-semibold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                                        <span className="ml-auto text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-0.5"
+                                            style={{ backgroundColor: theme.accentSubtle, color: theme.accent }}>
                                             <Award className="w-2.5 h-2.5" />
-                                            {typeof picOfDay.department === 'object' ? (picOfDay.department.shortCode || picOfDay.department.name) : picOfDay.department}
+                                            {(picOfDay.department && typeof picOfDay.department === 'object') ? (picOfDay.department.shortCode || picOfDay.department.name) : picOfDay.department}
                                         </span>
                                     )}
                                 </div>
                                 {picOfDay.caption && (
-                                    <p className="text-sm text-slate-600 mb-4 line-clamp-2">{picOfDay.caption}</p>
+                                    <p className="text-sm mb-4 line-clamp-2" style={{ color: theme.textSecondary }}>{picOfDay.caption}</p>
                                 )}
                                 {picOfDay.instagramUrl && (
                                     <a href={picOfDay.instagramUrl} target="_blank" rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-amber-600 text-white rounded-xl text-sm font-medium hover:bg-amber-700 transition-all shadow-sm hover:shadow-md active:scale-95">
+                                        className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium transition-all shadow-sm hover:shadow-md active:scale-95"
+                                        style={{ backgroundColor: theme.accent, color: theme.bgPrimary }}>
                                         <Camera className="w-3.5 h-3.5" /> View on Instagram
                                         <ExternalLink className="w-3 h-3 ml-0.5 opacity-60" />
                                     </a>
                                 )}
                             </motion.div>
                         ) : (
-                            <div className="border-2 border-dashed border-amber-200 rounded-2xl p-6 sm:p-8 text-center bg-amber-50/30">
-                                <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                                    <Camera className="w-7 h-7 text-amber-300" />
+                            <div className="rounded-2xl p-6 sm:p-8 text-center" style={hlEmpty}>
+                                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
+                                    style={{ backgroundColor: theme.accentSubtle }}>
+                                    <Camera className="w-7 h-7" style={{ color: theme.textMuted }} />
                                 </div>
-                                <h3 className="font-semibold text-slate-600 mb-1">Pic of the Day</h3>
-                                <p className="text-sm text-slate-400">No photo posted today yet</p>
-                                <p className="text-xs text-slate-300 mt-1.5">Check back for stunning captures! 📸</p>
+                                <h3 className="font-semibold mb-1" style={{ color: theme.textSecondary }}>Pic of the Day</h3>
+                                <p className="text-sm" style={{ color: theme.textMuted }}>No photo posted today yet</p>
+                                <p className="text-xs mt-1.5" style={{ color: theme.textMuted }}>Check back for stunning captures! 📸</p>
                             </div>
                         )}
 
@@ -387,46 +428,50 @@ const Home = () => {
                                 initial={{ opacity: 0, scale: 0.98 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 onClick={() => articleOfDay.content && setShowArticle(true)}
-                                className={`bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 border border-emerald-200 rounded-2xl p-5 sm:p-6 hover:shadow-lg transition-shadow ${articleOfDay.content ? 'cursor-pointer' : ''}`}>
+                                className={`rounded-2xl p-5 sm:p-6 hover:shadow-lg transition-shadow ${articleOfDay.content ? 'cursor-pointer' : ''}`}
+                                style={hlCard}>
                                 <div className="flex items-center gap-2 mb-3">
-                                    <div className="p-1.5 bg-emerald-100 rounded-lg">
-                                        <FileText className="w-4 h-4 text-emerald-600" />
+                                    <div className="p-1.5 rounded-lg" style={{ backgroundColor: theme.accentSubtle }}>
+                                        <FileText className="w-4 h-4" style={{ color: theme.accent }} />
                                     </div>
-                                    <span className="text-sm font-bold text-emerald-700">Article of the Day</span>
+                                    <span className="text-sm font-bold" style={{ color: theme.accent }}>Article of the Day</span>
                                     {articleOfDay.department && (
-                                        <span className="ml-auto text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                                        <span className="ml-auto text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-0.5"
+                                            style={{ backgroundColor: theme.accentSubtle, color: theme.accent }}>
                                             <Award className="w-2.5 h-2.5" />
                                             {typeof articleOfDay.department === 'object' ? (articleOfDay.department.shortCode || articleOfDay.department.name) : articleOfDay.department}
                                         </span>
                                     )}
                                 </div>
                                 {articleOfDay.caption && (
-                                    <p className="text-xs font-medium text-emerald-600 mb-2">{articleOfDay.caption}</p>
+                                    <p className="text-xs font-medium mb-2" style={{ color: theme.accent }}>{articleOfDay.caption}</p>
                                 )}
                                 {articleOfDay.content ? (
                                     <>
-                                        <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line line-clamp-6">{articleOfDay.content}</p>
-                                        <p className="text-xs font-medium text-emerald-600 mt-3 flex items-center gap-1">
+                                        <p className="text-sm leading-relaxed whitespace-pre-line line-clamp-6" style={{ color: theme.textSecondary }}>{articleOfDay.content}</p>
+                                        <p className="text-xs font-medium mt-3 flex items-center gap-1" style={{ color: theme.accent }}>
                                             <FileText className="w-3 h-3" /> Tap to read full article &rarr;
                                         </p>
                                     </>
                                 ) : articleOfDay.instagramUrl ? (
                                     <a href={articleOfDay.instagramUrl} target="_blank" rel="noopener noreferrer"
                                         onClick={(e) => e.stopPropagation()}
-                                        className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md active:scale-95">
+                                        className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium transition-all shadow-sm hover:shadow-md active:scale-95"
+                                        style={{ backgroundColor: theme.accent, color: theme.bgPrimary }}>
                                         <FileText className="w-3.5 h-3.5" /> Read on Instagram
                                         <ExternalLink className="w-3 h-3 ml-0.5 opacity-60" />
                                     </a>
                                 ) : null}
                             </motion.div>
                         ) : (
-                            <div className="border-2 border-dashed border-emerald-200 rounded-2xl p-6 sm:p-8 text-center bg-emerald-50/30">
-                                <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                                    <FileText className="w-7 h-7 text-emerald-300" />
+                            <div className="rounded-2xl p-6 sm:p-8 text-center" style={hlEmpty}>
+                                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
+                                    style={{ backgroundColor: theme.accentSubtle }}>
+                                    <FileText className="w-7 h-7" style={{ color: theme.textMuted }} />
                                 </div>
-                                <h3 className="font-semibold text-slate-600 mb-1">Article of the Day</h3>
-                                <p className="text-sm text-slate-400">No article posted today yet</p>
-                                <p className="text-xs text-slate-300 mt-1.5">Check back for event coverage! 📝</p>
+                                <h3 className="font-semibold mb-1" style={{ color: theme.textSecondary }}>Article of the Day</h3>
+                                <p className="text-sm" style={{ color: theme.textMuted }}>No article posted today yet</p>
+                                <p className="text-xs mt-1.5" style={{ color: theme.textMuted }}>Check back for event coverage! 📝</p>
                             </div>
                         )}
                     </div>
@@ -446,29 +491,33 @@ const Home = () => {
                                     exit={{ opacity: 0, y: 30, scale: 0.97 }}
                                     transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                                     onClick={(e) => e.stopPropagation()}
-                                    className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden">
+                                    className="rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden"
+                                    style={{ backgroundColor: theme.bgSecondary }}>
                                     {/* Header */}
-                                    <div className="flex items-center gap-2 p-5 border-b border-slate-100 flex-shrink-0">
-                                        <div className="p-1.5 bg-emerald-100 rounded-lg">
-                                            <FileText className="w-4 h-4 text-emerald-600" />
+                                    <div className="flex items-center gap-2 p-5 flex-shrink-0"
+                                        style={{ borderBottom: `1px solid ${theme.borderDefault}` }}>
+                                        <div className="p-1.5 rounded-lg" style={{ backgroundColor: theme.accentSubtle }}>
+                                            <FileText className="w-4 h-4" style={{ color: theme.accent }} />
                                         </div>
-                                        <span className="text-sm font-bold text-emerald-700 flex-1">Article of the Day</span>
+                                        <span className="text-sm font-bold flex-1" style={{ color: theme.accent }}>Article of the Day</span>
                                         {articleOfDay.department && (
-                                            <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-0.5"
+                                                style={{ backgroundColor: theme.accentSubtle, color: theme.accent }}>
                                                 <Award className="w-2.5 h-2.5" />
-                                                {typeof articleOfDay.department === 'object' ? (articleOfDay.department.shortCode || articleOfDay.department.name) : articleOfDay.department}
+                                                {(articleOfDay.department && typeof articleOfDay.department === 'object') ? (articleOfDay.department.shortCode || articleOfDay.department.name) : articleOfDay.department}
                                             </span>
                                         )}
-                                        <button onClick={() => setShowArticle(false)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors">
+                                        <button onClick={() => setShowArticle(false)}
+                                            className="p-1.5 rounded-lg transition-colors" style={{ color: theme.textMuted }}>
                                             <X className="w-5 h-5" />
                                         </button>
                                     </div>
                                     {/* Body */}
                                     <div className="p-5 sm:p-6 overflow-y-auto flex-1">
                                         {articleOfDay.caption && (
-                                            <p className="text-sm font-semibold text-emerald-700 mb-3">{articleOfDay.caption}</p>
+                                            <p className="text-sm font-semibold mb-3" style={{ color: theme.accent }}>{articleOfDay.caption}</p>
                                         )}
-                                        <p className="text-sm sm:text-base text-slate-700 leading-relaxed whitespace-pre-line">{articleOfDay.content}</p>
+                                        <p className="text-sm sm:text-base leading-relaxed whitespace-pre-line" style={{ color: theme.textSecondary }}>{articleOfDay.content}</p>
                                     </div>
                                 </motion.div>
                             </motion.div>
@@ -479,41 +528,66 @@ const Home = () => {
                 {/* ========== MATCHES SECTION ========== */}
                 <section>
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                            <div className="p-1.5 bg-blue-100 rounded-lg">
-                                <Trophy className="w-4 h-4 text-blue-600" />
+                        <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: theme.textPrimary }}>
+                            <div className="p-1.5 rounded-lg" style={{ backgroundColor: theme.accentSubtle }}>
+                                <Trophy className="w-4 h-4" style={{ color: theme.accent }} />
                             </div>
                             Matches
                         </h2>
-                        <span className="text-xs text-slate-400 font-medium bg-slate-100 px-2.5 py-1 rounded-full">
+                        <span className="text-xs font-medium px-2.5 py-1 rounded-full"
+                            style={{ color: theme.textMuted, backgroundColor: theme.bgTertiary }}>
                             {filteredMatches.length} {filteredMatches.length === 1 ? 'match' : 'matches'}
                         </span>
                     </div>
 
-                    {/* Sport Filter Pills — horizontally scrollable on mobile */}
+                    {/* Sport Filter Pills */}
                     <div className="flex gap-2 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-hide">
                         <button onClick={() => setSelectedSport('ALL')}
-                            className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                                selectedSport === 'ALL'
-                                    ? 'bg-blue-500 text-white shadow-sm shadow-blue-500/25'
-                                    : 'bg-white text-slate-600 border border-slate-200 hover:border-blue-300 hover:text-blue-600'
-                            }`}>
+                            className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all"
+                            style={selectedSport === 'ALL'
+                                ? { backgroundColor: theme.accent, color: theme.bgPrimary, boxShadow: `0 2px 8px ${theme.accentSubtle}` }
+                                : { backgroundColor: theme.bgSecondary, color: theme.textSecondary, border: `1px solid ${theme.borderDefault}` }
+                            }>
                             All Sports
                         </button>
                         {SPORTS.map(sport => (
                             <button key={sport} onClick={() => setSelectedSport(sport)}
-                                className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
-                                    selectedSport === sport
-                                        ? 'bg-blue-500 text-white shadow-sm shadow-blue-500/25'
-                                        : 'bg-white text-slate-600 border border-slate-200 hover:border-blue-300 hover:text-blue-600'
-                                }`}>
-                                {SPORT_ICONS[sport]} {sport.replace('_', ' ')}
+                                className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1.5"
+                                style={selectedSport === sport
+                                    ? { backgroundColor: theme.accent, color: theme.bgPrimary, boxShadow: `0 2px 8px ${theme.accentSubtle}` }
+                                    : { backgroundColor: theme.bgSecondary, color: theme.textSecondary, border: `1px solid ${theme.borderDefault}` }
+                                }>
+                                <SportBadge sport={sport} size="xs" /> {getSportLabel(sport)}
                             </button>
                         ))}
                     </div>
 
+                    {/* Department Filter Pills */}
+                    {matchDepts.length > 0 && (
+                        <div className="flex gap-2 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-hide">
+                            <button onClick={() => setSelectedDept('ALL')}
+                                className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5"
+                                style={selectedDept === 'ALL'
+                                    ? { backgroundColor: theme.accent, color: theme.bgPrimary, boxShadow: `0 2px 8px ${theme.accentSubtle}` }
+                                    : { backgroundColor: theme.bgSecondary, color: theme.textSecondary, border: `1px solid ${theme.borderDefault}` }
+                                }>
+                                <Building2 className="w-3 h-3" /> All Depts
+                            </button>
+                            {matchDepts.map(dept => (
+                                <button key={dept} onClick={() => setSelectedDept(dept)}
+                                    className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap"
+                                    style={selectedDept === dept
+                                        ? { backgroundColor: theme.accent, color: theme.bgPrimary, boxShadow: `0 2px 8px ${theme.accentSubtle}` }
+                                        : { backgroundColor: theme.bgSecondary, color: theme.textSecondary, border: `1px solid ${theme.borderDefault}` }
+                                    }>
+                                    {dept}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
                     {/* Status Tabs */}
-                    <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-6">
+                    <div className="flex gap-1 rounded-xl p-1 mb-6" style={{ backgroundColor: theme.bgTertiary }}>
                         {[
                             { key: 'ALL', label: 'All' },
                             { key: 'SCHEDULED', label: 'Upcoming' },
@@ -521,11 +595,11 @@ const Home = () => {
                             { key: 'CANCELLED', label: 'Cancelled' }
                         ].map(tab => (
                             <button key={tab.key} onClick={() => setSelectedStatus(tab.key)}
-                                className={`flex-1 px-2 sm:px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                                    selectedStatus === tab.key
-                                        ? 'bg-white text-slate-900 shadow-sm'
-                                        : 'text-slate-500 hover:text-slate-700'
-                                }`}>
+                                className="flex-1 px-2 sm:px-3 py-2 rounded-lg text-xs font-medium transition-all"
+                                style={selectedStatus === tab.key
+                                    ? { backgroundColor: theme.bgSecondary, color: theme.textPrimary, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }
+                                    : { color: theme.textMuted }
+                                }>
                                 {tab.label}
                             </button>
                         ))}
@@ -543,14 +617,16 @@ const Home = () => {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             className="text-center py-16 sm:py-20">
-                            <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <span className="text-3xl">🏟️</span>
+                            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                                style={{ backgroundColor: theme.bgTertiary }}>
+                                <Trophy className="w-8 h-8" style={{ color: theme.textMuted }} />
                             </div>
-                            <h3 className="font-semibold text-slate-700 mb-1">No matches found</h3>
-                            <p className="text-sm text-slate-400 mb-4">Try adjusting your filters</p>
-                            {(selectedSport !== 'ALL' || selectedStatus !== 'ALL') && (
-                                <button onClick={() => { setSelectedSport('ALL'); setSelectedStatus('ALL'); }}
-                                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm font-medium transition-colors active:scale-95">
+                            <h3 className="font-semibold mb-1" style={{ color: theme.textSecondary }}>No matches found</h3>
+                            <p className="text-sm mb-4" style={{ color: theme.textMuted }}>Try adjusting your filters</p>
+                            {(selectedSport !== 'ALL' || selectedStatus !== 'ALL' || selectedDept !== 'ALL') && (
+                                <button onClick={() => { setSelectedSport('ALL'); setSelectedStatus('ALL'); setSelectedDept('ALL'); }}
+                                    className="px-4 py-2 rounded-xl text-sm font-medium transition-colors active:scale-95"
+                                    style={{ backgroundColor: theme.accent, color: theme.bgPrimary }}>
                                     Clear Filters
                                 </button>
                             )}
@@ -575,7 +651,7 @@ const Home = () => {
 
                 {/* Footer */}
                 {lastUpdated && !loading && (
-                    <div className="text-center mt-10 text-xs text-slate-300">
+                    <div className="text-center mt-10 text-xs" style={{ color: theme.textMuted }}>
                         Last updated {lastUpdated.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true })}
                         {' · '}Real-time updates enabled
                     </div>

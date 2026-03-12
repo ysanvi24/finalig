@@ -1,0 +1,93 @@
+# Artillery Load Test — IG App
+# Simulates 10,000 concurrent virtual users across multiple phases
+# Usage:  npx artillery run load-test.yml
+# Report: npx artillery run load-test.yml --output report.json && npx artillery report report.json
+
+config:
+  target: "http://127.0.0.1:5000"
+  phases:
+    # Warm-up: 50 users/sec for 30 seconds
+    - duration: 30
+      arrivalRate: 50
+      name: "Warm-up"
+    # Ramp-up: from 50 to 500 users/sec over 60 seconds
+    - duration: 60
+      arrivalRate: 50
+      rampTo: 500
+      name: "Ramp-up"
+    # Sustained load: 500 users/sec for 120 seconds (~10k concurrent)
+    - duration: 120
+      arrivalRate: 500
+      name: "Sustained peak load"
+    # Spike: 1000 users/sec for 30 seconds
+    - duration: 30
+      arrivalRate: 1000
+      name: "Spike test"
+  defaults:
+    headers:
+      Accept: "application/json"
+  plugins:
+    expect: {}
+
+scenarios:
+  # ── Public API browsing (80% of traffic) ──
+  - name: "Public browsing"
+    weight: 80
+    flow:
+      - get:
+          url: "/api/health"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/api/matches"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/api/departments"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/api/leaderboard"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/api/student-council"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/api/highlights"
+          expect:
+            - statusCode: 200
+      - think: 1
+
+  # ── Leaderboard focus (10% of traffic) ──
+  - name: "Leaderboard deep-dive"
+    weight: 10
+    flow:
+      - get:
+          url: "/api/leaderboard"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/api/leaderboard/detailed"
+          expect:
+            - statusCode: 200
+      - think: 0.5
+
+  # ── Match detail browsing (10% of traffic) ──
+  - name: "Match detail"
+    weight: 10
+    flow:
+      - get:
+          url: "/api/matches"
+          capture:
+            - json: "$.data[0]._id"
+              as: "matchId"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/api/matches/{{ matchId }}"
+          ifTrue: "matchId"
+          expect:
+            - statusCode: 200
+      - think: 1

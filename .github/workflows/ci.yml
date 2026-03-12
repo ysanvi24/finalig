@@ -1,10 +1,12 @@
-# ─── VNIT IG App — CI/CD Pipeline ───
+# ─── VNIT IG App — CI/CD + QA Pipeline ───
 # Runs on every push / PR to main.
 # 1. Lint + Test backend (Jest against in-memory MongoDB)
-# 2. Build frontend (Vite)
-# 3. Build Docker images (validates Dockerfiles)
+# 2. Build frontend (Vite) + Lighthouse CI audit
+# 3. Error Matrix quality gate
+# 4. Build Docker images (validates Dockerfiles)
+# 5. Sentry release + source map upload
 
-name: CI
+name: CI + QA
 
 on:
   push:
@@ -44,9 +46,9 @@ jobs:
           JWT_SECRET: ci-test-secret
         run: npm test -- --verbose --forceExit --detectOpenHandles
 
-  # ── Frontend: Build ──
+  # ── Frontend: Build + Lighthouse CI ──
   frontend-build:
-    name: Frontend Build
+    name: Frontend Build + Lighthouse
     runs-on: ubuntu-latest
 
     steps:
@@ -60,19 +62,108 @@ jobs:
           cache: npm
           cache-dependency-path: client/package-lock.json
 
-      - name: Install dependencies
+      - name: Install client dependencies
         working-directory: client
         run: npm ci
 
-      - name: Build
+      - name: Build production bundle
         working-directory: client
         run: npm run build
+
+      - name: Install root dependencies (Lighthouse CI)
+        run: npm ci
+
+      - name: Run Lighthouse CI audit
+        run: npx lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+      - name: Upload Lighthouse reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: qa/lighthouse-reports/
+          retention-days: 14
+
+  # ── Error Matrix Quality Gate ──
+  quality-gate:
+    name: Error Matrix QA Gate
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-build]
+
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install server dependencies
+        working-directory: server
+        run: npm ci
+
+      - name: Install client dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: Build client
+        working-directory: client
+        run: npm run build
+
+      - name: Start server
+        working-directory: server
+        run: node server.js &
+        env:
+          NODE_ENV: test
+          PORT: 5000
+          MONGODB_URI: mongodb://localhost:27017/vnit-ig-test
+          JWT_SECRET: ci-test-secret
+
+      - name: Wait for server
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:5000/alive && break
+            sleep 1
+          done
+
+      - name: Run Error Matrix V2 tests
+        run: node qa/error-matrix-tests-v2.js
+        env:
+          TEST_BASE_URL: http://localhost:5000
+          NODE_ENV: test
+
+      - name: Run Resolution Playbook audit
+        run: node qa/resolution-playbook.js
+        if: always()
+
+      - name: Upload Error Matrix V2 report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: error-matrix-report-v2
+          path: qa/error-matrix-report-v2.json
+
+      - name: Upload Playbook report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playbook-report
+          path: qa/playbook-report.json
 
   # ── Docker: Validate Builds ──
   docker-build:
     name: Docker Build Check
     runs-on: ubuntu-latest
-    needs: [backend-test, frontend-build]
+    needs: [quality-gate]
 
     steps:
       - name: Checkout code
@@ -98,3 +189,38 @@ jobs:
           tags: vnit-ig-frontend:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # ── Sentry Release + Source Maps (only on push to main) ──
+  sentry-release:
+    name: Sentry Release
+    runs-on: ubuntu-latest
+    needs: [quality-gate]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install dependencies & build with source maps
+        working-directory: client
+        run: |
+          npm ci
+          npm run build
+
+      - name: Create Sentry Release & Upload Source Maps
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        with:
+          environment: production
+          sourcemaps: './client/dist/assets'
+          version: ${{ github.sha }}

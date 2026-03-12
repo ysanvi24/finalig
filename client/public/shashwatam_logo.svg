@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" opacity="0.04">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#d4af37;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#f0d060;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#b8941f;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2d1b69;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a0a3e;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Outer Circle -->
+  <circle cx="250" cy="250" r="245" fill="none" stroke="url(#goldGrad)" stroke-width="8"/>
+  <circle cx="250" cy="250" r="230" fill="none" stroke="url(#goldGrad)" stroke-width="2"/>
+  
+  <!-- Inner decorative circle -->
+  <circle cx="250" cy="250" r="215" fill="none" stroke="url(#goldGrad)" stroke-width="1.5"/>
+  
+  <!-- Swirl pattern lines -->
+  <path d="M250 35 Q350 150 250 250 Q150 350 250 465" fill="none" stroke="url(#goldGrad)" stroke-width="1.5"/>
+  <path d="M35 250 Q150 150 250 250 Q350 350 465 250" fill="none" stroke="url(#goldGrad)" stroke-width="1.5"/>
+  <path d="M100 100 Q250 180 250 250 Q250 320 400 400" fill="none" stroke="url(#goldGrad)" stroke-width="1"/>
+  <path d="M400 100 Q250 180 250 250 Q250 320 100 400" fill="none" stroke="url(#goldGrad)" stroke-width="1"/>
+  
+  <!-- Center Sanskrit text शाश्वतम् -->
+  <text x="250" y="235" text-anchor="middle" font-family="serif" font-size="72" font-weight="bold" fill="url(#goldGrad)">शाश्वतम्</text>
+  
+  <!-- Institute Gathering text -->
+  <text x="250" y="290" text-anchor="middle" font-family="'Inter', sans-serif" font-size="20" font-weight="600" letter-spacing="4" fill="url(#goldGrad)">INSTITUTE GATHERING</text>
+  
+  <!-- Year -->
+  <text x="250" y="315" text-anchor="middle" font-family="'Inter', sans-serif" font-size="16" font-weight="500" letter-spacing="2" fill="url(#goldGrad)">'26</text>
+  
+  <!-- Small decorative dots around the circle -->
+  <circle cx="250" cy="45" r="4" fill="url(#goldGrad)"/>
+  <circle cx="250" cy="455" r="4" fill="url(#goldGrad)"/>
+  <circle cx="45" cy="250" r="4" fill="url(#goldGrad)"/>
+  <circle cx="455" cy="250" r="4" fill="url(#goldGrad)"/>
+  <circle cx="105" cy="105" r="3" fill="url(#goldGrad)"/>
+  <circle cx="395" cy="105" r="3" fill="url(#goldGrad)"/>
+  <circle cx="105" cy="395" r="3" fill="url(#goldGrad)"/>
+  <circle cx="395" cy="395" r="3" fill="url(#goldGrad)"/>
+  
+  <!-- Additional decorative elements -->
+  <circle cx="175" cy="60" r="2.5" fill="url(#goldGrad)"/>
+  <circle cx="325" cy="60" r="2.5" fill="url(#goldGrad)"/>
+  <circle cx="60" cy="175" r="2.5" fill="url(#goldGrad)"/>
+  <circle cx="60" cy="325" r="2.5" fill="url(#goldGrad)"/>
+  <circle cx="440" cy="175" r="2.5" fill="url(#goldGrad)"/>
+  <circle cx="440" cy="325" r="2.5" fill="url(#goldGrad)"/>
+  <circle cx="175" cy="440" r="2.5" fill="url(#goldGrad)"/>
+  <circle cx="325" cy="440" r="2.5" fill="url(#goldGrad)"/>
+</svg>

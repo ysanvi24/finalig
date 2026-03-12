@@ -1,15 +1,16 @@
 import React from 'react';
 
 const Skeleton = ({ className = '' }) => (
-    <div className={`animate-pulse bg-slate-200 rounded ${className}`} />
+    <div className={`animate-pulse rounded ${className}`} style={{ backgroundColor: 'var(--bg-tertiary)', opacity: 0.6 }} />
 );
 
 export const MatchCardSkeleton = () => (
-    <div className="bg-white border border-slate-200 rounded-2xl p-4 overflow-hidden relative">
-        <div className="absolute inset-x-0 top-0 h-1 bg-slate-200" />
+    <div className="rounded-2xl p-4 overflow-hidden relative"
+        style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
+        <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: 'var(--bg-tertiary)', opacity: 0.3 }} />
         <div className="flex justify-between mb-3 pt-1">
             <div className="flex items-center gap-2">
-                <Skeleton className="h-5 w-5 rounded" />
+                <Skeleton className="h-8 w-8 rounded-lg" />
                 <Skeleton className="h-4 w-20 rounded" />
             </div>
             <Skeleton className="h-5 w-16 rounded-full" />
@@ -25,7 +26,7 @@ export const MatchCardSkeleton = () => (
                 <Skeleton className="h-4 w-10 mx-auto rounded" />
             </div>
         </div>
-        <div className="flex justify-center gap-4 mt-3 pt-2.5 border-t border-slate-100">
+        <div className="flex justify-center gap-4 mt-3 pt-2.5" style={{ borderTop: '1px solid var(--border-color)' }}>
             <Skeleton className="h-3 w-20 rounded" />
             <Skeleton className="h-3 w-16 rounded" />
         </div>
@@ -33,7 +34,7 @@ export const MatchCardSkeleton = () => (
 );
 
 export const HighlightSkeleton = () => (
-    <div className="rounded-2xl border border-slate-200 p-5 bg-slate-50/50">
+    <div className="rounded-2xl p-5" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', opacity: 0.7 }}>
         <div className="flex items-center gap-2 mb-3">
             <Skeleton className="h-8 w-8 rounded-lg" />
             <Skeleton className="h-4 w-28 rounded" />

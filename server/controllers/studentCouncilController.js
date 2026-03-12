@@ -41,13 +41,19 @@ exports.getMember = async (req, res) => {
 // Add new member
 exports.addMember = async (req, res) => {
     try {
-        const { name, position, department, photo, pledge, email, phone, order } = req.body;
+        const { name, position, department, pledge, email, phone, order } = req.body;
 
         if (!name || !position || !department) {
             return res.status(400).json({
                 success: false,
                 message: 'Name, position, and department are required'
             });
+        }
+
+        // Photo: prefer uploaded file, fall back to URL in body
+        let photo = req.body.photo || '';
+        if (req.file) {
+            photo = `/uploads/${req.file.filename}`;
         }
 
         const member = new StudentCouncil({
@@ -80,21 +86,19 @@ exports.addMember = async (req, res) => {
 // Update member
 exports.updateMember = async (req, res) => {
     try {
-        const { name, position, department, photo, pledge, email, phone, order, isActive } = req.body;
+        const { name, position, department, pledge, email, phone, order, isActive } = req.body;
+
+        // Photo: prefer uploaded file, fall back to URL in body, or keep existing
+        const updates = { name, position, department, pledge, email, phone, order, isActive };
+        if (req.file) {
+            updates.photo = `/uploads/${req.file.filename}`;
+        } else if (req.body.photo !== undefined) {
+            updates.photo = req.body.photo;
+        }
 
         const member = await StudentCouncil.findByIdAndUpdate(
             req.params.id,
-            {
-                name,
-                position,
-                department,
-                photo,
-                pledge,
-                email,
-                phone,
-                order,
-                isActive
-            },
+            updates,
             { new: true }
         );
 

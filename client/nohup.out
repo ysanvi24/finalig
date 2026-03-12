@@ -1,0 +1,19 @@
+
+  VITE v5.4.21  ready in 123 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://172.25.79.41:5173/
+  ➜  Network: http://10.42.0.1:5173/
+/*! 🌼 daisyUI 5.5.14 */
+3:13:19 AM [vite] hmr update /src/components/SportBadge.jsx, /src/index.css
+3:13:19 AM [vite] hmr update /src/index.css, /src/pages/admin/LiveConsole.jsx, /src/pages/public/Home.jsx, /src/pages/public/Leaderboard.jsx, /src/components/MatchCard.jsx
+3:13:19 AM [vite] hmr update /src/pages/admin/StudentCouncilManagement.jsx, /src/index.css
+3:13:19 AM [vite] hmr update /src/pages/admin/ScheduleMatch.jsx, /src/index.css
+3:13:19 AM [vite] hmr invalidate /src/components/SportBadge.jsx Could not Fast Refresh ("getSportAccent" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+3:13:19 AM [vite] hmr update /src/index.css, /src/pages/admin/LiveConsole.jsx, /src/pages/admin/ScoringPresets.jsx, /src/pages/public/Home.jsx, /src/pages/public/MatchDetail.jsx, /src/components/MatchCard.jsx
+3:13:21 AM [vite] hmr update /src/index.css, /src/pages/admin/LiveConsole.jsx, /src/pages/public/Home.jsx, /src/pages/public/Leaderboard.jsx, /src/components/MatchCard.jsx
+3:13:21 AM [vite] hmr update /src/components/SportBadge.jsx, /src/index.css
+3:13:21 AM [vite] hmr update /src/pages/admin/ScheduleMatch.jsx, /src/index.css
+3:13:21 AM [vite] hmr update /src/pages/admin/StudentCouncilManagement.jsx, /src/index.css
+3:13:22 AM [vite] hmr invalidate /src/components/SportBadge.jsx Could not Fast Refresh ("getSportAccent" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+3:13:22 AM [vite] hmr update /src/index.css, /src/pages/admin/LiveConsole.jsx, /src/pages/admin/ScoringPresets.jsx, /src/pages/public/Home.jsx, /src/pages/public/MatchDetail.jsx, /src/components/MatchCard.jsx

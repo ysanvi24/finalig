@@ -26,6 +26,7 @@ const foulRoutes = require('./routes/foulRoutes');
 const highlightRoutes = require('./routes/highlightRoutes');
 
 const { errorHandler } = require('./middleware/errorHandler');
+const { authLogger, securityHeaders, sanitizeInput, loginRateLimiter } = require('./middleware/securityMiddleware');
 
 function createApp() {
     const app = express();
@@ -34,6 +35,7 @@ function createApp() {
     app.use(helmet({
         contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
         crossOriginEmbedderPolicy: false,
+        crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow images to load from separate frontend origin
     }));
 
     // ── CORS ──
@@ -76,8 +78,13 @@ function createApp() {
     app.use(express.json({ limit: '1mb' }));
     app.use(express.urlencoded({ extended: true }));
 
-    // ── Static Files ──
-    app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+    // ── Static Files (uploads — images, logos, photos) ──
+    // Override Helmet's restrictive CORP header so images load cross-origin (Vercel→Railway)
+    app.use('/uploads', (req, res, next) => {
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+        res.setHeader('Cache-Control', 'public, max-age=86400'); // 24h cache
+        next();
+    }, express.static(path.join(__dirname, 'uploads')));
 
     // ── Logging (dev only) ──
     if (process.env.NODE_ENV === 'development') {
@@ -91,6 +98,14 @@ function createApp() {
     });
 
     // ── API Routes ──
+    // Apply security headers and input sanitization to all API routes
+    app.use('/api', securityHeaders);
+    app.use('/api', sanitizeInput);
+    
+    // Auth routes get additional logging and brute-force protection
+    app.use('/api/auth', authLogger);
+    app.use('/api/auth/login', loginRateLimiter);
+    
     app.use('/api/auth', require('./routes/authRoutes'));
     app.use('/api/matches', matchRoutes);
     app.use('/api/departments', departmentRoutes);
@@ -103,6 +118,22 @@ function createApp() {
     app.use('/api/players', playerRoutes);
     app.use('/api/fouls', foulRoutes);
     app.use('/api/highlights', highlightRoutes);
+
+    // ── Honeypot routes — log and reject requests to obvious admin paths ──
+    const honeypotHandler = (req, res) => {
+        const ip = req.ip || req.connection.remoteAddress;
+        console.warn(`🍯 HONEYPOT HIT: ${req.method} ${req.originalUrl} from ${ip}`);
+        res.status(404).json({ message: 'Not found' });
+    };
+    app.all('/admin', honeypotHandler);
+    app.all('/admin/:path', honeypotHandler);
+    app.all('/wp-admin', honeypotHandler);
+    app.all('/wp-admin/:path', honeypotHandler);
+    app.all('/administrator', honeypotHandler);
+    app.all('/administrator/:path', honeypotHandler);
+    app.all('/panel', honeypotHandler);
+    app.all('/panel/:path', honeypotHandler);
+    app.all('/dashboard', honeypotHandler);
 
     // ── Error Handler (must be last) ──
     app.use(errorHandler);

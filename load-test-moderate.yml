@@ -1,0 +1,31 @@
+# Artillery Moderate Load Test — 200 concurrent users for 60 seconds
+config:
+  target: "http://127.0.0.1:5000"
+  phases:
+    - duration: 15
+      arrivalRate: 20
+      name: "Warm-up"
+    - duration: 45
+      arrivalRate: 200
+      name: "Peak load (200 users/sec)"
+  defaults:
+    headers:
+      Accept: "application/json"
+
+scenarios:
+  - name: "Public browsing"
+    weight: 70
+    flow:
+      - get:
+          url: "/api/matches"
+      - get:
+          url: "/api/leaderboard"
+      - get:
+          url: "/api/departments"
+  - name: "Highlights + Council"
+    weight: 30
+    flow:
+      - get:
+          url: "/api/highlights"
+      - get:
+          url: "/api/student-council"

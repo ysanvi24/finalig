@@ -1,31 +1,27 @@
 // Shared constants used across the app — single source of truth
+import { MATCH_SPORTS, getMatchSportIds, getSportShortCode, getSportAccentColor } from '../config/sportsRegistry';
 
-export const SPORT_ICONS = {
-    CRICKET: '🏏', FOOTBALL: '⚽', HOCKEY: '🏑', BASKETBALL: '🏀',
-    BADMINTON: '🏸', TABLE_TENNIS: '🏓', VOLLEYBALL: '🏐', CHESS: '♟️',
-    KHOKHO: '🏃', KABADDI: '💪'
-};
+// Professional sport abbreviations (derived from registry, backward compat)
+export const SPORT_ICONS = Object.fromEntries(
+    MATCH_SPORTS.map(s => [s.id, s.shortCode])
+);
 
-export const SPORTS = Object.keys(SPORT_ICONS);
+export const SPORTS = getMatchSportIds();
 
 export const STATUS_CONFIG = {
-    SCHEDULED: { label: 'Upcoming', color: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-400' },
-    COMPLETED: { label: 'Completed', color: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-400' },
-    CANCELLED: { label: 'Cancelled', color: 'bg-red-50 text-red-700 border-red-200', dot: 'bg-red-400' }
+    SCHEDULED: { label: 'Upcoming', color: 'bg-[rgba(251,191,36,0.15)] text-[#fbbf24] border-[rgba(251,191,36,0.3)]', dot: 'bg-[#fbbf24]' },
+    COMPLETED: { label: 'Completed', color: 'bg-[rgba(74,222,128,0.15)] text-[#4ade80] border-[rgba(74,222,128,0.3)]', dot: 'bg-[#4ade80]' },
+    CANCELLED: { label: 'Cancelled', color: 'bg-[rgba(248,113,113,0.15)] text-[#f87171] border-[rgba(248,113,113,0.3)]', dot: 'bg-[#f87171]' }
 };
 
-export const SPORT_COLORS = {
-    CRICKET:      { accent: '#22c55e' },
-    FOOTBALL:     { accent: '#3b82f6' },
-    HOCKEY:       { accent: '#f97316' },
-    BASKETBALL:   { accent: '#f59e0b' },
-    BADMINTON:    { accent: '#06b6d4' },
-    TABLE_TENNIS: { accent: '#ef4444' },
-    VOLLEYBALL:   { accent: '#eab308' },
-    CHESS:        { accent: '#64748b' },
-    KHOKHO:       { accent: '#14b8a6' },
-    KABADDI:      { accent: '#a855f7' }
-};
+// Sport colors - now derived from registry accent colors
+export const SPORT_COLORS = Object.fromEntries(
+    MATCH_SPORTS.map(s => [s.id, {
+        accent: s.accentColor,
+        bg: `bg-[${s.accentColor}]/15`,
+        text: `text-[${s.accentColor}]`
+    }])
+);
 
 export const MATCH_CATEGORIES = [
     { label: 'Regular', value: 'REGULAR' },
@@ -64,4 +60,14 @@ export const formatMatchTime = (dateStr) => {
 
 export const getBaseUrl = () => {
     return import.meta.env.VITE_API_URL?.replace('/api', '') || '';
+};
+
+// Category colors for point history
+export const CATEGORY_COLORS = {
+    Sports: { bg: 'bg-emerald-500/15', text: 'text-emerald-400', dot: 'bg-emerald-400' },
+    Cultural: { bg: 'bg-violet-500/15', text: 'text-violet-400', dot: 'bg-violet-400' },
+    Literary: { bg: 'bg-blue-500/15', text: 'text-blue-400', dot: 'bg-blue-400' },
+    Technical: { bg: 'bg-cyan-500/15', text: 'text-cyan-400', dot: 'bg-cyan-400' },
+    Arts: { bg: 'bg-pink-500/15', text: 'text-pink-400', dot: 'bg-pink-400' },
+    Other: { bg: 'bg-gray-500/15', text: 'text-gray-400', dot: 'bg-gray-400' },
 };

@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { toast } from 'react-hot-toast';
 import { Lock, User, Shield } from 'lucide-react';
+import { generateFingerprint } from '../../components/ProtectedRoute';
+
+const ADMIN_SECRET_PATH = import.meta.env.VITE_ADMIN_SECRET_PATH || 'shashwatam-control-2026';
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -70,15 +73,21 @@ const Login = () => {
                 localStorage.setItem('adminToken', res.data.token);
                 localStorage.setItem('adminUser', JSON.stringify(res.data));
                 
+                // Store session security data
+                localStorage.setItem('sessionFingerprint', generateFingerprint());
+                localStorage.setItem('sessionStart', String(Date.now()));
+                
                 if (res.data.role === 'viewer' && !res.data.isTrusted) {
                     toast.error('Access denied. Admin privileges required.');
                     localStorage.removeItem('adminToken');
                     localStorage.removeItem('adminUser');
+                    localStorage.removeItem('sessionFingerprint');
+                    localStorage.removeItem('sessionStart');
                     return;
                 }
                 
                 toast.success(`Welcome back, ${res.data.username || res.data.name}!`);
-                navigate('/admin/dashboard', { replace: true });
+                navigate(`/${ADMIN_SECRET_PATH}/dashboard`, { replace: true });
             }
         } catch (error) {
             const msg = error.response?.data?.message;
@@ -125,8 +134,10 @@ const Login = () => {
                 
                 localStorage.setItem('adminToken', res.data.token);
                 localStorage.setItem('adminUser', JSON.stringify(res.data));
+                localStorage.setItem('sessionFingerprint', generateFingerprint());
+                localStorage.setItem('sessionStart', String(Date.now()));
                 toast.success(`Welcome, ${res.data.name}!`);
-                navigate('/admin/dashboard', { replace: true });
+                navigate(`/${ADMIN_SECRET_PATH}/dashboard`, { replace: true });
             }
         } catch (error) {
             toast.error(error.response?.data?.message || 'Google sign-in failed');
@@ -136,15 +147,15 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
-            <div className="bg-white dark:bg-slate-800 p-8 rounded-xl w-full max-w-md border border-slate-200 dark:border-slate-700">
+        <div className="min-h-screen shashwatam-bg flex items-center justify-center bg-[var(--bg-primary)] p-4">
+            <div className="bg-[var(--bg-secondary)] p-8 rounded-xl w-full max-w-md border border-[var(--border-color)]">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <div className="w-14 h-14 mx-auto rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-4">
-                        <Shield className="w-7 h-7 text-blue-500" />
+                    <div className="w-14 h-14 mx-auto rounded-xl bg-[var(--color-accent-subtle)] flex items-center justify-center mb-4">
+                        <Shield className="w-7 h-7 text-[var(--color-accent)]" />
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Admin Login</h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Institute Gathering Sports Officials</p>
+                    <h1 className="text-2xl font-bold text-[var(--text-primary)]">Admin Login</h1>
+                    <p className="text-sm text-[var(--text-secondary)] mt-1">Institute Gathering Sports Officials</p>
                 </div>
 
                 {/* Google Sign-In */}
@@ -156,16 +167,16 @@ const Login = () => {
                         </div>
                         <div className="relative mb-6">
                             <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-slate-200 dark:border-slate-700"></div>
+                                <div className="w-full border-t border-[var(--border-color)]"></div>
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-3 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400">or</span>
+                                <span className="px-3 bg-[var(--bg-secondary)] text-[var(--text-secondary)]">or</span>
                             </div>
                         </div>
                     </>
                 ) : (
-                    <div className="mb-6 p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg">
-                        <p className="text-xs text-slate-600 dark:text-slate-400">
+                    <div className="mb-6 p-3 bg-[var(--bg-tertiary)] rounded-lg">
+                        <p className="text-xs text-[var(--text-secondary)]">
                             Google OAuth not configured. Set VITE_GOOGLE_CLIENT_ID in .env.local
                         </p>
                     </div>
@@ -174,17 +185,17 @@ const Login = () => {
                 {/* Login Form */}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">
                             Username
                         </label>
                         <div className="relative">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                             <input
                                 type="text"
                                 name="username"
                                 value={formData.username}
                                 onChange={handleChange}
-                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                                className="w-full pl-10 pr-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent outline-none transition"
                                 placeholder="Enter username"
                                 required
                             />
@@ -192,17 +203,17 @@ const Login = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">
                             Password
                         </label>
                         <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                             <input
                                 type="password"
                                 name="password"
                                 value={formData.password}
                                 onChange={handleChange}
-                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                                className="w-full pl-10 pr-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent outline-none transition"
                                 placeholder="Enter password"
                                 required
                             />
@@ -212,10 +223,10 @@ const Login = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className={`w-full py-2.5 rounded-lg text-white font-medium transition ${
+                        className={`w-full py-2.5 rounded-lg text-[var(--text-primary)] font-medium transition ${
                             loading
-                                ? 'bg-blue-400 cursor-not-allowed'
-                                : 'bg-blue-500 hover:bg-blue-600'
+                                ? 'bg-[var(--color-accent)]/60 cursor-not-allowed'
+                                : 'bg-[var(--color-accent)] hover:bg-[var(--color-accent-dark)]'
                         }`}
                     >
                         {loading ? 'Signing in...' : 'Sign In'}
@@ -224,7 +235,7 @@ const Login = () => {
 
                 {/* Footer */}
                 <div className="mt-6 text-center">
-                    <p className="text-xs text-slate-400 dark:text-slate-500">
+                    <p className="text-xs text-[var(--text-muted)]">
                         Protected System • Authorized Personnel Only
                     </p>
                 </div>

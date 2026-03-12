@@ -26,6 +26,11 @@ const cacheMiddleware = (duration = 300) => {
     if (cachedResponse) {
       res.set('X-Cache', 'HIT');
       res.set('X-Cache-Key', key);
+      if (cachedResponse && typeof cachedResponse === 'object' && 'body' in cachedResponse) {
+        res.status(cachedResponse.statusCode || 200);
+        return res.json(cachedResponse.body);
+      }
+
       return res.json(cachedResponse);
     }
 
@@ -37,7 +42,13 @@ const cacheMiddleware = (duration = 300) => {
     
     // Override json method to cache response
     res.json = (body) => {
-      cache.set(key, body, duration);
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        cache.set(key, {
+          statusCode: res.statusCode,
+          body,
+        }, duration);
+      }
+
       return originalJson(body);
     };
     

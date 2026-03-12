@@ -1,90 +1,86 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Building2, Calendar, Radio, Star, Trophy, Target, Settings, Users, GraduationCap, BookOpen, LogOut, Menu, X, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Building2, Calendar, Radio, Star, Trophy, Target, Settings, Users, GraduationCap, BookOpen, LogOut, Menu, X, Sparkles, Award, GitBranch } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Footer from './Footer';
 
-const AdminLayout = () => {
+const AdminLayout = ({ secretPath }) => {
+    const basePath = secretPath ? `/${secretPath}` : '/admin';
+    const loginPath = secretPath ? `/${secretPath}/login` : '/auth/login';
     const location = useLocation();
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
 
-    // Check authentication and role
     useEffect(() => {
         const checkAuth = () => {
             const token = localStorage.getItem('adminToken');
             const userStr = localStorage.getItem('adminUser');
             
-            console.log('🔐 AdminLayout Auth Check:', { hasToken: !!token, hasUser: !!userStr });
-            
             if (!token) {
-                console.log('❌ No token found, redirecting to login');
-                navigate('/auth/login', { replace: true });
+                navigate(loginPath, { replace: true });
                 return;
             }
             
-            // Check role
             if (userStr) {
                 try {
                     const user = JSON.parse(userStr);
-                    console.log('👤 User role:', user.role, 'isTrusted:', user.isTrusted);
-                    
-                    // Allow super_admin, admin, and trusted users
                     if (user.role === 'viewer' && !user.isTrusted) {
-                        console.log('🚫 Access denied for untrusted viewer');
                         toast.error('Access denied. Only admins can access this area.');
                         localStorage.removeItem('adminToken');
                         localStorage.removeItem('adminUser');
-                        navigate('/auth/login', { replace: true });
+                        localStorage.removeItem('sessionFingerprint');
+                        localStorage.removeItem('sessionStart');
+                        navigate(loginPath, { replace: true });
                         return;
                     }
-                    
-                    console.log('✅ Auth check passed');
                     setCurrentUser(user);
                 } catch (e) {
-                    console.error('❌ Error parsing user data:', e);
                     localStorage.removeItem('adminToken');
                     localStorage.removeItem('adminUser');
-                    navigate('/auth/login', { replace: true });
+                    localStorage.removeItem('sessionFingerprint');
+                    localStorage.removeItem('sessionStart');
+                    navigate(loginPath, { replace: true });
                 }
             }
         };
-        
         checkAuth();
-    }, [navigate]);
+    }, [navigate, loginPath]);
 
     const navItems = [
-        { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-        { name: 'Departments', path: '/admin/departments', icon: Building2 },
-        { name: 'Schedule Match', path: '/admin/schedule', icon: Calendar },
-        { name: 'Live Console', path: '/admin/live', icon: Radio },
-        { name: 'Highlights', path: '/admin/highlights', icon: Sparkles },
-        { name: 'Award Points', path: '/admin/points', icon: Star },
-        { name: 'Leaderboard', path: '/admin/leaderboard', icon: Trophy },
-        { name: 'Seasons', path: '/admin/seasons', icon: Target },
-        { name: 'Scoring Presets', path: '/admin/scoring-presets', icon: Settings },
-        { name: 'Admin Users', path: '/admin/users', icon: Users },
-        { name: 'Student Council', path: '/admin/student-council', icon: GraduationCap },
-        { name: 'About Institute Gathering', path: '/admin/about', icon: BookOpen }
+        { name: 'Dashboard', path: `${basePath}/dashboard`, icon: LayoutDashboard },
+        { name: 'Departments', path: `${basePath}/departments`, icon: Building2 },
+        { name: 'Schedule Match', path: `${basePath}/schedule`, icon: Calendar },
+        { name: 'Live Console', path: `${basePath}/live`, icon: Radio },
+        { name: 'Highlights', path: `${basePath}/highlights`, icon: Sparkles },
+        { name: 'Events', path: `${basePath}/events`, icon: Award },
+        { name: 'Award Points', path: `${basePath}/points`, icon: Star },
+        { name: 'Leaderboard', path: `${basePath}/leaderboard`, icon: Trophy },
+        { name: 'Seasons', path: `${basePath}/seasons`, icon: Target },
+        { name: 'Scoring Table', path: `${basePath}/scoring-presets`, icon: Settings },
+        { name: 'Bracket Manager', path: `${basePath}/bracket-manager`, icon: GitBranch },
+        { name: 'Admin Users', path: `${basePath}/users`, icon: Users },
+        { name: 'Student Council', path: `${basePath}/student-council`, icon: GraduationCap },
+        { name: 'About IG', path: `${basePath}/about`, icon: BookOpen }
     ];
 
     const handleLogout = () => {
         if (window.confirm('Are you sure you want to logout?')) {
-            console.log('👋 Logging out...');
             localStorage.removeItem('adminToken');
             localStorage.removeItem('adminUser');
-            navigate('/auth/login', { replace: true });
+            localStorage.removeItem('sessionFingerprint');
+            localStorage.removeItem('sessionStart');
+            navigate(loginPath, { replace: true });
             toast.success('Logged out successfully');
         }
     };
 
     return (
-        <div className="flex h-screen bg-slate-50 dark:bg-slate-900 overflow-hidden">
+        <div className="flex h-screen bg-[var(--bg-primary)] overflow-hidden">
             {/* Mobile Overlay */}
             {sidebarOpen && (
                 <div 
-                    className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden"
+                    className="fixed inset-0 bg-black/60 z-40 lg:hidden"
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
@@ -92,21 +88,21 @@ const AdminLayout = () => {
             {/* Sidebar */}
             <aside className={`
                 fixed lg:static inset-y-0 left-0 z-50
-                w-64 flex flex-col bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700
+                w-64 flex flex-col bg-[var(--bg-secondary)] border-r border-[var(--border-color)]
                 transform transition-transform duration-300 ease-in-out
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             `}>
                 {/* Header */}
-                <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <div className="p-6 border-b border-[var(--border-color)] flex items-center justify-between">
                     <div>
-                        <h1 className="text-lg font-bold text-slate-900 dark:text-white">
-                            Institute Gathering Sports
+                        <h1 className="text-lg font-bold text-[var(--color-accent)]">
+                            शाश्वतम् Admin
                         </h1>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Admin Dashboard</p>
+                        <p className="text-xs text-[var(--text-muted)] mt-0.5">IG '26 Dashboard</p>
                     </div>
                     <button
                         onClick={() => setSidebarOpen(false)}
-                        className="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"
+                        className="lg:hidden p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -122,8 +118,8 @@ const AdminLayout = () => {
                                 onClick={() => setSidebarOpen(false)}
                                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                                     isActive
-                                        ? 'bg-blue-500 text-white'
-                                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                        ? 'bg-[var(--color-accent)] text-[var(--bg-primary)]'
+                                        : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]'
                                 }`}
                             >
                                 <Icon className="w-5 h-5" />
@@ -134,10 +130,10 @@ const AdminLayout = () => {
                 </nav>
 
                 {/* Logout */}
-                <div className="p-3 border-t border-slate-200 dark:border-slate-700">
+                <div className="p-3 border-t border-[var(--border-color)]">
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600"
+                        className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] border border-[var(--border-color)]"
                     >
                         <LogOut className="w-4 h-4" />
                         Logout
@@ -146,16 +142,16 @@ const AdminLayout = () => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-900 w-full">
+            <main className="flex-1 overflow-auto bg-[var(--bg-primary)] w-full shashwatam-bg">
                 {/* Mobile Header */}
-                <div className="lg:hidden sticky top-0 z-30 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center gap-3">
+                <div className="lg:hidden sticky top-0 z-30 bg-[var(--bg-secondary)] border-b border-[var(--border-color)] px-4 py-3 flex items-center gap-3">
                     <button
                         onClick={() => setSidebarOpen(true)}
-                        className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                        className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]"
                     >
                         <Menu className="w-5 h-5" />
                     </button>
-                    <h2 className="text-base font-semibold text-slate-900 dark:text-white">Institute Gathering Sports</h2>
+                    <h2 className="text-base font-semibold text-[var(--color-accent)]">शाश्वतम् Admin</h2>
                 </div>
 
                 <div className="p-4 sm:p-6 lg:p-8">

@@ -1,15 +1,19 @@
+const dotenv = require('dotenv');
+const path = require('path');
+
+// Load environment variables FIRST - before any other imports that need them
+dotenv.config({ path: path.join(__dirname, '.env') });
+
+// ── Sentry MUST initialize before Express ──
+const Sentry = require('./instrument');
+
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
-const dotenv = require('dotenv');
-const path = require('path');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
-
-// Load environment variables FIRST - before any other imports that need them
-dotenv.config({ path: path.join(__dirname, '.env') });
 
 console.log('🔄 Starting IG App Server...');
 console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
@@ -29,6 +33,9 @@ const adminRoutes = require('./routes/adminRoutes');
 const playerRoutes = require('./routes/playerRoutes');
 const foulRoutes = require('./routes/foulRoutes');
 const highlightRoutes = require('./routes/highlightRoutes');
+const eventRoutes = require('./routes/eventRoutes');
+const bracketRoutes = require('./routes/bracketRoutes');
+const officialEventRoutes = require('./routes/officialEventRoutes');
 const { cacheMiddleware, clearCacheOnUpdate } = require('./utils/cache');
 const { errorHandler } = require('./middleware/errorHandler');
 
@@ -115,6 +122,7 @@ app.get('/api/socket-status', (req, res) => {
 app.use(helmet({
     contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false, // Disable CSP in dev
     crossOriginEmbedderPolicy: false, // Required for loading external images
+    crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow images to load from separate frontend origin (Vercel→Railway)
 }));
 
 // Rate limiting for auth endpoints to prevent brute-force attacks
@@ -147,8 +155,11 @@ const apiLimiter = rateLimit({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static uploads
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve static uploads with 24h cache
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+    maxAge: '1d',
+    immutable: true,
+}));
 
 // Serve React frontend in production
 if (process.env.NODE_ENV === 'production') {
@@ -281,6 +292,17 @@ app.use('/api/fouls', foulRoutes);
 console.log('📍 Foul routes mounted');
 app.use('/api/highlights', highlightRoutes);
 console.log('📍 Highlight routes mounted');
+app.use('/api/events', apiLimiter, eventRoutes);
+console.log('📍 Event routes mounted');
+app.use('/api/brackets', apiLimiter, bracketRoutes);
+console.log('📍 Bracket routes mounted');
+app.use('/api/official-events', cacheMiddleware(3600), officialEventRoutes);
+console.log('📍 Official events routes mounted (cached 1h)');
+
+// ── Sentry Express error handler (must be BEFORE custom errorHandler) ──
+if (process.env.SENTRY_DSN) {
+    Sentry.setupExpressErrorHandler(app);
+}
 
 // Error handler middleware — use the robust handler with Mongoose/JWT parsing
 app.use(errorHandler);
@@ -352,11 +374,28 @@ serverInstance.on('clientError', (err, socket) => {
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
     console.error('❌ Uncaught Exception:', err);
-    process.exit(1);
+    gracefulShutdown('uncaughtException');
 });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
     console.error('❌ Unhandled Rejection:', err);
-    process.exit(1);
+    gracefulShutdown('unhandledRejection');
 });
+
+// Graceful shutdown — close server + DB so no in-flight requests are dropped
+function gracefulShutdown(signal) {
+    console.log(`\n🛑 ${signal} received — shutting down gracefully...`);
+    serverInstance.close(() => {
+        console.log('✅ HTTP server closed');
+        const mongoose = require('mongoose');
+        mongoose.connection.close(false).then(() => {
+            console.log('✅ MongoDB connection closed');
+            process.exit(0);
+        }).catch(() => process.exit(1));
+    });
+    // Force-kill after 10s if graceful shutdown stalls
+    setTimeout(() => { console.error('⏱️ Forced shutdown after timeout'); process.exit(1); }, 10000);
+}
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));

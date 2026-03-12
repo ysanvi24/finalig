@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
+const upload = require('../middleware/uploadMiddleware');
+const { processUpload } = require('../middleware/uploadMiddleware');
 const {
     getAllMembers,
     getMember,
@@ -13,9 +15,9 @@ const {
 router.get('/', getAllMembers);
 router.get('/:id', getMember);
 
-// Protected admin routes
-router.post('/', protect, addMember);
-router.put('/:id', protect, updateMember);
+// Protected admin routes — support photo file upload
+router.post('/', protect, upload.single('photo'), processUpload, addMember);
+router.put('/:id', protect, upload.single('photo'), processUpload, updateMember);
 router.delete('/:id', protect, deleteMember);
 
 module.exports = router;

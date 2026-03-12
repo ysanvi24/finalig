@@ -1,13 +1,20 @@
 const mongoose = require('mongoose');
+const { getMatchSportIds } = require('../config/sportsRegistry');
 
-const SPORTS = ['CRICKET', 'BADMINTON', 'TABLE_TENNIS', 'VOLLEYBALL', 'FOOTBALL', 'HOCKEY', 'BASKETBALL', 'KHOKHO', 'KABADDI', 'CHESS'];
+// Dynamic from registry — includes 21 new sports + old aliases for backward compat
+const SPORTS = getMatchSportIds();
 const MATCH_STATUS = ['SCHEDULED', 'COMPLETED', 'CANCELLED'];
 
 const matchSchema = new mongoose.Schema({
     sport: { 
         type: String, 
         required: true, 
-        enum: SPORTS 
+        validate: {
+            validator: function(v) {
+                return getMatchSportIds().includes(v);
+            },
+            message: props => `${props.value} is not a valid match sport`
+        }
     },
     teamA: { 
         type: mongoose.Schema.Types.ObjectId, 
@@ -61,7 +68,26 @@ const matchSchema = new mongoose.Schema({
     pointsAwarded: {
         type: Boolean,
         default: false
-    }
+    },
+
+    // ── Bracket fields (populated only for BRACKET-type IG events 1–19) ──
+    /** Reference to the OfficialEvent this match belongs to */
+    officialEvent: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'OfficialEvent',
+        default: null,
+    },
+    /** Round within the bracket: QF → SF → LM → FINAL */
+    bracketRound: {
+        type: String,
+        enum: ['QF', 'SF', 'LM', 'FINAL', null],
+        default: null,
+    },
+    /** Slot number within the round (1-4 for QF, 1-2 for SF, 1 for LM/FINAL) */
+    bracketSlot: {
+        type: Number,
+        default: null,
+    },
 }, { 
     timestamps: true 
 });

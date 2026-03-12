@@ -1,0 +1,785 @@
+{
+  "version": 2,
+  "timestamp": "2026-03-12T12:04:28.631Z",
+  "summary": {
+    "total": 76,
+    "passed": 75,
+    "warnings": 1,
+    "failed": 0,
+    "passRate": "98.7%"
+  },
+  "categories": {
+    "runtime": [
+      {
+        "name": "1.1  Backend /alive endpoint responds",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.2  /api/health returns detailed status",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.3  API returns structured errors (no stack leaks)",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.4  Unknown API routes return 404 (not crash)",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.5  All API route mounts respond (13 endpoints)",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.6  Rate limiter exists on /api/auth",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.7  MongoDB connected (departments returns data)",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.8  Socket.io endpoint responds to polling",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.9  Events API returns paginated response",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.10 Events search/filter works",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.11 Leaderboard returns ranked data",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.12 ErrorBoundary has componentDidCatch + getDerivedStateFromError",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.13 Sentry SDK integrated in frontend",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.14 Sentry SDK integrated in backend",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.15 Global unhandledrejection + error listeners",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.16 Backend graceful shutdown (SIGTERM + SIGINT)",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.17 asyncWrap utility prevents unhandled async errors",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.18 Auth rejects bad credentials with 4xx",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.19 Protected endpoints reject unauthenticated requests",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.20 Highlights API responds",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.21 Student council API responds",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "1.22 About API responds",
+        "status": "pass",
+        "severity": "error"
+      }
+    ],
+    "performance": [
+      {
+        "name": "2.1  API response time < 2000ms (/api/matches)",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "2.2  Events API response time < 2000ms",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "2.3  Leaderboard API response time < 2000ms",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "2.4  Vite build produces optimized chunks",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "2.5  Vite manual chunks configured for code splitting",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "2.6  Source maps set to hidden (Sentry only)",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "2.7  console.log stripped in production (terser drop_console)",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "2.8  Core Web Vitals (CLS, LCP, INP, FCP, TTFB) tracked",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "2.9  CSS code splitting enabled",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "2.10 No oversized images in source (>2MB)",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "2.11 MongoDB connection config exists",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "2.12 Server-side caching middleware exists",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "2.13 Three.js is code-split (not in main bundle)",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "2.14 Total JS bundle under 2MB budget",
+        "status": "pass",
+        "severity": "error"
+      }
+    ],
+    "structural": [
+      {
+        "name": "3.1  index.html has proper meta tags",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "3.2  theme-color meta matches शाश्वतम् (#110a28)",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "3.3  Open Graph tags present for social sharing",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "3.4  JSON-LD structured data present",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "3.5  Canonical URL specified",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "3.6  Web App Manifest exists",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "3.7  SPA fallback configured",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "3.8  Nginx config exists for production",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "3.9  Dockerfiles exist and are valid",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "3.10 Deployment configs present (Railway/Render/Procfile)",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "3.11 Helmet security headers configured",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "3.12 No secrets committed (.env in .gitignore)",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "3.13 No hardcoded localhost in production code",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "3.14 Vercel config exists for client SPA",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "3.15 All public pages defined in App.jsx",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "3.16 ErrorBoundary wraps all public routes",
+        "status": "pass",
+        "severity": "error"
+      }
+    ],
+    "accessibility": [
+      {
+        "name": "4.1  HTML has lang=\"en\" attribute",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "4.2  Viewport meta correct (no zoom-disable)",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "4.3  Touch-friendly button sizing",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "4.4  Theme CSS variables exist for contrast",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "4.5  Font loading strategy configured",
+        "status": "warn",
+        "severity": "error"
+      },
+      {
+        "name": "4.6  prefers-reduced-motion respected in CSS",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "4.7  Mobile optimization CSS exists",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "4.8  Tailwind configured with responsive breakpoints",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "4.9  DaisyUI themes configured",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "4.10 ErrorBoundary uses inline styles (crash-proof)",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "4.11 Three themes configured (shashwatam, dark, light)",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "4.12 PublicNavbar includes Events navigation",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "4.13 AdminLayout includes Events navigation",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "4.14 Capacitor config exists for mobile builds",
+        "status": "pass",
+        "severity": "error"
+      }
+    ],
+    "events": [
+      {
+        "name": "5.1  Server sportsRegistry.js exists with exports",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "5.2  Client sportsRegistry.js exists with exports",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "5.3  Server registry has 21+ match sports + 55+ event sports",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "5.4  No self-referencing CHESS alias (regression fix)",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "5.5  Event model (server/models/Event.js) exists",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "5.6  Event controller exists with CRUD handlers",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "5.7  Event routes mounted at /api/events",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "5.8  SportBadge uses sportsRegistry (not hardcoded)",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "5.9  EventManager admin page exists",
+        "status": "pass",
+        "severity": "error"
+      },
+      {
+        "name": "5.10 Events + EventDetail public pages exist",
+        "status": "pass",
+        "severity": "error"
+      }
+    ]
+  },
+  "results": [
+    {
+      "name": "1.1  Backend /alive endpoint responds",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.2  /api/health returns detailed status",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.3  API returns structured errors (no stack leaks)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.4  Unknown API routes return 404 (not crash)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.5  All API route mounts respond (13 endpoints)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.6  Rate limiter exists on /api/auth",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.7  MongoDB connected (departments returns data)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.8  Socket.io endpoint responds to polling",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.9  Events API returns paginated response",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.10 Events search/filter works",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.11 Leaderboard returns ranked data",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.12 ErrorBoundary has componentDidCatch + getDerivedStateFromError",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.13 Sentry SDK integrated in frontend",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.14 Sentry SDK integrated in backend",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.15 Global unhandledrejection + error listeners",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.16 Backend graceful shutdown (SIGTERM + SIGINT)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.17 asyncWrap utility prevents unhandled async errors",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.18 Auth rejects bad credentials with 4xx",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.19 Protected endpoints reject unauthenticated requests",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.20 Highlights API responds",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.21 Student council API responds",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "1.22 About API responds",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "2.1  API response time < 2000ms (/api/matches)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "2.2  Events API response time < 2000ms",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "2.3  Leaderboard API response time < 2000ms",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "2.4  Vite build produces optimized chunks",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "2.5  Vite manual chunks configured for code splitting",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "2.6  Source maps set to hidden (Sentry only)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "2.7  console.log stripped in production (terser drop_console)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "2.8  Core Web Vitals (CLS, LCP, INP, FCP, TTFB) tracked",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "2.9  CSS code splitting enabled",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "2.10 No oversized images in source (>2MB)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "2.11 MongoDB connection config exists",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "2.12 Server-side caching middleware exists",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "2.13 Three.js is code-split (not in main bundle)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "2.14 Total JS bundle under 2MB budget",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "3.1  index.html has proper meta tags",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "3.2  theme-color meta matches शाश्वतम् (#110a28)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "3.3  Open Graph tags present for social sharing",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "3.4  JSON-LD structured data present",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "3.5  Canonical URL specified",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "3.6  Web App Manifest exists",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "3.7  SPA fallback configured",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "3.8  Nginx config exists for production",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "3.9  Dockerfiles exist and are valid",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "3.10 Deployment configs present (Railway/Render/Procfile)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "3.11 Helmet security headers configured",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "3.12 No secrets committed (.env in .gitignore)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "3.13 No hardcoded localhost in production code",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "3.14 Vercel config exists for client SPA",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "3.15 All public pages defined in App.jsx",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "3.16 ErrorBoundary wraps all public routes",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "4.1  HTML has lang=\"en\" attribute",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "4.2  Viewport meta correct (no zoom-disable)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "4.3  Touch-friendly button sizing",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "4.4  Theme CSS variables exist for contrast",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "4.5  Font loading strategy configured",
+      "status": "warn",
+      "severity": "error"
+    },
+    {
+      "name": "4.6  prefers-reduced-motion respected in CSS",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "4.7  Mobile optimization CSS exists",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "4.8  Tailwind configured with responsive breakpoints",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "4.9  DaisyUI themes configured",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "4.10 ErrorBoundary uses inline styles (crash-proof)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "4.11 Three themes configured (shashwatam, dark, light)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "4.12 PublicNavbar includes Events navigation",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "4.13 AdminLayout includes Events navigation",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "4.14 Capacitor config exists for mobile builds",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "5.1  Server sportsRegistry.js exists with exports",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "5.2  Client sportsRegistry.js exists with exports",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "5.3  Server registry has 21+ match sports + 55+ event sports",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "5.4  No self-referencing CHESS alias (regression fix)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "5.5  Event model (server/models/Event.js) exists",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "5.6  Event controller exists with CRUD handlers",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "5.7  Event routes mounted at /api/events",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "5.8  SportBadge uses sportsRegistry (not hardcoded)",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "5.9  EventManager admin page exists",
+      "status": "pass",
+      "severity": "error"
+    },
+    {
+      "name": "5.10 Events + EventDetail public pages exist",
+      "status": "pass",
+      "severity": "error"
+    }
+  ]
+}

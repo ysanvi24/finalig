@@ -96,6 +96,15 @@ const errorHandler = (err, req, res, next) => {
             ip: req.ip,
             timestamp: new Date().toISOString(),
         });
+
+        // Report programming errors to Sentry (operational errors are expected)
+        try {
+            const Sentry = require('@sentry/node');
+            Sentry.captureException(err, {
+                tags: { route: req.originalUrl, method: req.method },
+                extra: { ip: req.ip, body: req.body, params: req.params },
+            });
+        } catch { /* Sentry not available — no-op */ }
     }
 
     // ── Build response ──

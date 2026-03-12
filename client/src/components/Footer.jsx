@@ -1,14 +1,20 @@
 import React from 'react';
 
 const Footer = () => (
-    <footer className="border-t border-slate-200 dark:border-slate-700 mt-12 py-6 text-center px-4">
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+    <footer
+        className="mt-12 py-6 text-center px-4"
+        style={{
+            borderTop: '1px solid var(--border-color)',
+            backgroundColor: 'var(--bg-primary)',
+        }}
+    >
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             Developed by:{' '}Chinmay Sabharwal, Anshul Jain, Sanvi Y
             <br />
             Mentored by:{' '}Vedant Singh, Jayesh Patil
         </p>
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-            © 2026 Institute Gathering. All rights reserved.
+        <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+            © 2026 शाश्वतम् Institute Gathering. All rights reserved.
         </p>
     </footer>
 );

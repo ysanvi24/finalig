@@ -1,0 +1,64 @@
+# Artillery Quick Smoke Test — Verifies every endpoint works
+# Usage: npx artillery run load-test-smoke.yml
+config:
+  target: "http://127.0.0.1:5000"
+  phases:
+    - duration: 10
+      arrivalRate: 5
+      name: "Smoke test"
+  defaults:
+    headers:
+      Accept: "application/json"
+  plugins:
+    expect: {}
+
+scenarios:
+  - name: "Full API smoke test"
+    flow:
+      - get:
+          url: "/api/health"
+          expect:
+            - statusCode: 200
+            - hasProperty: "status"
+      - get:
+          url: "/api/matches"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/api/departments"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/api/leaderboard"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/api/leaderboard/detailed"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/api/student-council"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/api/highlights"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/api/highlights/dates"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/api/about"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/api/seasons/active"
+          expect:
+            - statusCode:
+              - 200
+              - 404
+      - get:
+          url: "/api/scoring-presets"
+          expect:
+            - statusCode: 200

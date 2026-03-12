@@ -11,10 +11,9 @@ const departments = [
     { name: 'Electronics & Communication Engineering', shortCode: 'ECE' },
     { name: 'Electrical & Electronics Engineering', shortCode: 'EEE' },
     { name: 'Mechanical Engineering', shortCode: 'MECH' },
-    { name: 'Chemical Engineering', shortCode: 'CHEM' },
+    { name: 'Chemical & Mining Engineering', shortCode: 'CHEMINE' },
     { name: 'Civil Engineering', shortCode: 'CIVIL' },
-    { name: 'Metallurgical & Materials Engineering', shortCode: 'META' },
-    { name: 'Mining Engineering', shortCode: 'MINING' }
+    { name: 'Metallurgical & Materials Engineering', shortCode: 'META' }
 ];
 
 const seedDepartments = async () => {

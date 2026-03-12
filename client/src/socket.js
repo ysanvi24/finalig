@@ -26,6 +26,14 @@ export const socket = io(SOCKET_URL, {
     pingInterval: 25000
 });
 
+// ── Track socket state globally (used by Sentry context) ──
+socket.on('connect', () => {
+    window.__SOCKET_CONNECTED = true;
+});
+socket.on('disconnect', () => {
+    window.__SOCKET_CONNECTED = false;
+});
+
 // Connection event handlers (dev-only logging)
 if (isDev) {
     socket.on('connect', () => {

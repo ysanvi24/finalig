@@ -1,10 +1,16 @@
 const mongoose = require('mongoose');
+const { getAllSportIds } = require('../config/sportsRegistry');
 
 const scoringPresetSchema = new mongoose.Schema({
     sport: {
         type: String,
         required: [true, 'Sport is required'],
-        enum: ['CRICKET', 'BADMINTON', 'TABLE_TENNIS', 'VOLLEYBALL', 'FOOTBALL', 'HOCKEY', 'BASKETBALL', 'KHOKHO', 'KABADDI', 'CHESS']
+        validate: {
+            validator: function(v) {
+                return getAllSportIds().includes(v);
+            },
+            message: props => `${props.value} is not a valid sport`
+        }
     },
     name: {
         type: String,

@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   build: {
     minify: 'terser',
-    sourcemap: false,
+    sourcemap: 'hidden', // Generated for Sentry upload, NOT shipped to browser
     chunkSizeWarningLimit: 1500, // Increased to account for three.js (1.1MB)
     cssCodeSplit: true,
     terserOptions: {
