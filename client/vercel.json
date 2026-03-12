@@ -3,21 +3,48 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/((?!api|assets|vite\\.svg|vnit_logo\\.svg).*)", "destination": "/index.html" }
+    {
+      "source": "/api/:path*",
+      "destination": "http://13.204.112.229/api/:path*"
+    },
+    {
+      "source": "/socket.io/:path*",
+      "destination": "http://13.204.112.229/socket.io/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "http://13.204.112.229/uploads/:path*"
+    },
+    {
+      "source": "/((?!api|socket\\.io|uploads|assets|vite\\.svg|vnit_logo\\.svg).*)",
+      "destination": "/index.html"
+    }
   ],
   "headers": [
     {
       "source": "/assets/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     },
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
       ]
     }
   ]
