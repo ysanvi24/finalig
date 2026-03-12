@@ -395,7 +395,7 @@ const resetBracket = asyncHandler(async (req, res) => {
 
   // Prevent reset if points already awarded (safety guard)
   const awarded = await Match.findOne({ officialEvent: oe._id, pointsAwarded: true });
-  if (awarded && !req.body.force) {
+  if (awarded && !req.body?.force) {
     res.status(400);
     throw new Error('Points already awarded for this bracket. Pass { force: true } to override and reset.');
   }
@@ -427,7 +427,7 @@ const listBrackets = asyncHandler(async (req, res) => {
         eventNumber: oe.eventNumber,
         name: oe.name,
         sportId: oe.sportId,
-        positions: Object.fromEntries(oe.positions),
+        positions: oe.positions instanceof Map ? Object.fromEntries(oe.positions) : oe.positions,
         matchCount,
         completedCount,
         status: matchCount === 0 ? 'NOT_STARTED' : awarded ? 'AWARDED' : completedCount === 7 ? 'COMPLETE' : 'IN_PROGRESS',

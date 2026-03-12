@@ -45,8 +45,8 @@ logs/
 /tmp/
 
 # ─── Uploads (user content) ─────────────────────
-server/uploads/*
-!server/uploads/.gitkeep
+# Images are committed for deployment — council photos, dept logos, etc.
+# Only exclude large temp files if needed.
 
 # ─── Cache ───────────────────────────────────────
 .eslintcache

@@ -356,9 +356,8 @@ const EventManager = () => {
                             </div>
 
                             <button type="submit" disabled={creating || !createForm.sport}
-                                className={`w-full py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors ${
-                                    creating || !createForm.sport ? 'bg-[var(--bg-tertiary)] text-[var(--text-muted)] cursor-not-allowed' : 'bg-[var(--color-accent)] hover:bg-[var(--color-accent-dark)] text-[var(--bg-primary)]'
-                                }`}>
+                                className={`w-full py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors ${creating || !createForm.sport ? 'bg-[var(--bg-tertiary)] text-[var(--text-muted)] cursor-not-allowed' : 'bg-[var(--color-accent)] hover:bg-[var(--color-accent-dark)] text-[var(--bg-primary)]'
+                                    }`}>
                                 {creating ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Creating...</> : <><Plus className="w-4 h-4" /> Create Event</>}
                             </button>
                         </form>
@@ -428,12 +427,11 @@ const EventManager = () => {
                                                         <div className="flex items-center gap-2 min-w-0">
                                                             <EventCategoryTag category={ev.category} />
                                                             <span className="text-sm font-semibold text-[var(--text-primary)] truncate">{entry?.label || ev.name}</span>
-                                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${
-                                                                ev.status === 'COMPLETED' ? 'bg-[rgba(74,222,128,0.1)] text-[#4ade80] border-[rgba(74,222,128,0.2)]' :
-                                                                ev.status === 'IN_PROGRESS' ? 'bg-[rgba(239,68,68,0.1)] text-[#ef4444] border-[rgba(239,68,68,0.2)]' :
-                                                                ev.status === 'CANCELLED' ? 'bg-[rgba(248,113,113,0.1)] text-[#f87171] border-[rgba(248,113,113,0.2)]' :
-                                                                'bg-[rgba(251,191,36,0.1)] text-[#fbbf24] border-[rgba(251,191,36,0.2)]'
-                                                            }`}>{ev.status?.replace('_', ' ')}</span>
+                                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${ev.status === 'COMPLETED' ? 'bg-[rgba(74,222,128,0.1)] text-[#4ade80] border-[rgba(74,222,128,0.2)]' :
+                                                                    ev.status === 'IN_PROGRESS' ? 'bg-[rgba(239,68,68,0.1)] text-[#ef4444] border-[rgba(239,68,68,0.2)]' :
+                                                                        ev.status === 'CANCELLED' ? 'bg-[rgba(248,113,113,0.1)] text-[#f87171] border-[rgba(248,113,113,0.2)]' :
+                                                                            'bg-[rgba(251,191,36,0.1)] text-[#fbbf24] border-[rgba(251,191,36,0.2)]'
+                                                                }`}>{ev.status?.replace('_', ' ')}</span>
                                                         </div>
                                                         <div className="flex gap-1">
                                                             <button onClick={() => isEditing ? setEditingId(null) : startEdit(ev)}
@@ -581,7 +579,7 @@ const EventManager = () => {
                                                                 {ranksForm.map((r, idx) => (
                                                                     <div key={idx} className="grid grid-cols-12 gap-2 items-center">
                                                                         <div className="col-span-1 text-center text-sm font-bold text-[var(--text-primary)]">
-                                                                            {idx < 3 ? ['🥇','🥈','🥉'][idx] : `#${r.position}`}
+                                                                            {idx < 3 ? ['🥇', '🥈', '🥉'][idx] : `#${r.position}`}
                                                                         </div>
                                                                         <select value={r.department} onChange={e => setRanksForm(prev => prev.map((x, i) => i === idx ? { ...x, department: e.target.value } : x))}
                                                                             className="col-span-6 px-2 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg text-xs outline-none">
@@ -608,6 +606,9 @@ const EventManager = () => {
                                                     )}
                                                 </AnimatePresence>
                                             </motion.div>
+                                        );
+                                    })}
+                                </AnimatePresence>
                             </div>
                         )}
                     </>

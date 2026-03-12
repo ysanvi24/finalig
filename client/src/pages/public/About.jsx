@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import PublicNavbar from '../../components/PublicNavbar';
 import Footer from '../../components/Footer';
 import axios from '../../api/axios';
-import { Trophy, Users, BookOpen, Mail, Phone } from 'lucide-react';
+import { Trophy, Users, BookOpen, Mail, Phone, FileText, ExternalLink } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
 const AboutPage = () => {
@@ -126,6 +126,33 @@ const AboutPage = () => {
                         </div>
                     </div>
                 )}
+
+                {/* IG Rulebook */}
+                <div className="rounded-xl p-6 mb-6 text-center"
+                    style={{ backgroundColor: theme.bgSecondary, border: `1px solid ${theme.borderDefault}` }}>
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                        <FileText className="w-5 h-5" style={{ color: theme.accent }} />
+                        <h3 className="font-semibold" style={{ color: theme.textPrimary }}>IG Rulebook</h3>
+                    </div>
+                    <p className="text-sm mb-4" style={{ color: theme.textSecondary }}>
+                        Complete rules, regulations, and guidelines for all Institute Gathering events.
+                    </p>
+                    <a
+                        href="https://drive.google.com/file/d/1NupyPalzZ5Fdi0fUreiwyxfE2njC47Fs/view?usp=sharing"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all hover:scale-105"
+                        style={{
+                            backgroundColor: theme.accent,
+                            color: theme.bgPrimary,
+                            boxShadow: `0 4px 14px ${theme.accentSubtle}`,
+                        }}
+                    >
+                        <BookOpen className="w-4 h-4" />
+                        View IG Rulebook
+                        <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                </div>
 
                 {/* Contact */}
                 <div className="rounded-xl p-6 mb-6"

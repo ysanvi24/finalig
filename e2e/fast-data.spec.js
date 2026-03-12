@@ -70,7 +70,7 @@ test.describe('Matches API', () => {
         const res = await request.get(`${API}/matches?limit=200`);
         const body = await res.json();
         const sports = [...new Set(body.data.map(m => m.sport))];
-        for (const s of ['CRICKET','BADMINTON','TABLE_TENNIS','VOLLEYBALL','FOOTBALL','HOCKEY','BASKETBALL','KHOKHO','KABADDI','CHESS']) {
+        for (const s of ['CRICKET', 'BADMINTON', 'TABLE_TENNIS', 'VOLLEYBALL', 'FOOTBALL', 'HOCKEY', 'BASKETBALL', 'KHOKHO', 'KABADDI', 'CHESS']) {
             expect(sports).toContain(s);
         }
     });
@@ -117,7 +117,7 @@ test.describe('Leaderboard API', () => {
         expect(res.status()).toBe(200);
         const body = await res.json();
         const standings = body.data || body;
-        expect(standings.length).toBe(7);
+        expect(standings.length).toBe(8);
     });
 
     test('#1 department has more points than #7', async ({ request }) => {
@@ -135,7 +135,7 @@ test.describe('Leaderboard API', () => {
         expect(res.status()).toBe(200);
         const body = await res.json();
         const standings = body.data || body;
-        expect(standings.length).toBe(7);
+        expect(standings.length).toBe(8);
     });
 });
 
@@ -203,7 +203,7 @@ test.describe('Departments', () => {
         expect(res.status()).toBe(200);
         const body = await res.json();
         const depts = body.data || body;
-        expect(depts.length).toBe(7);
+        expect(depts.length).toBe(8);
         for (const d of depts) {
             expect(d.shortCode).toBeTruthy();
             expect(d.name).toBeTruthy();
@@ -221,12 +221,12 @@ test.describe('Security', () => {
         expect(res.headers()['strict-transport-security']).toBeTruthy();
     });
 
-    test('CORS allows localhost:5173', async ({ request }) => {
+    test('CORS allows localhost:5174', async ({ request }) => {
         const res = await request.get(`${API}/departments`, {
-            headers: { 'Origin': 'http://localhost:5173' }
+            headers: { 'Origin': 'http://localhost:5174' }
         });
         expect(res.status()).toBe(200);
-        expect(res.headers()['access-control-allow-origin']).toBe('http://localhost:5173');
+        expect(res.headers()['access-control-allow-origin']).toBe('http://localhost:5174');
     });
 
     test('/alive returns healthy', async ({ request }) => {

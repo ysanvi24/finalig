@@ -32,14 +32,14 @@ const PublicNavbar = () => {
             <div className="max-w-6xl mx-auto px-4">
                 <div className="flex justify-between items-center h-16">
                     {/* Logo */}
-                    <motion.div 
+                    <motion.div
                         whileHover={{ scale: 1.02 }}
                         onClick={() => navigate('/')}
                         className="cursor-pointer flex items-center gap-2.5"
                     >
                         <img
-                            src="/vnit_logo.svg"
-                            alt="VNIT Logo"
+                            src="/ig_logo.jpg"
+                            alt="IG Logo"
                             className="w-10 h-10 rounded-full object-contain"
                             style={{ boxShadow: `0 0 0 2px ${theme.borderDefault}` }}
                         />

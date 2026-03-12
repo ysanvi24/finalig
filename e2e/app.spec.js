@@ -1,9 +1,10 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
 
-const BASE  = 'http://localhost:5173';
-const API   = 'http://localhost:5000/api';
+const BASE = 'http://localhost:5173';
+const API = 'http://localhost:5000/api';
 const CREDS = { username: 'admin', password: 'admin123' };
+const ADMIN_SECRET_PATH = 'shashwatam-control-2026';
 
 // ═══════════════════════════════════════════════════════════
 //  Helper: get a fresh admin JWT token
@@ -20,7 +21,7 @@ async function getAdminToken(request) {
 //  Helper: login via the UI and return the page
 // ═══════════════════════════════════════════════════════════
 async function loginViaUI(page) {
-    await page.goto(`${BASE}/auth/login`);
+    await page.goto(`${BASE}/${ADMIN_SECRET_PATH}/login`);
     await page.waitForTimeout(1500);
 
     const usernameInput = page.locator(
@@ -41,8 +42,8 @@ async function loginViaUI(page) {
 
     // Wait for navigation away from login page (up to 8s)
     await page.waitForFunction(() => {
-        return !window.location.pathname.includes('login');
-    }, { timeout: 8000 }).catch(() => {});
+        return !window.location.pathname.includes('/login');
+    }, { timeout: 8000 }).catch(() => { });
     await page.waitForTimeout(1000);
     return page;
 }
@@ -421,10 +422,10 @@ test.describe('10 · Home Page', () => {
         await page.waitForTimeout(2000);
         const body = await page.textContent('body');
         const hasNav = body.includes('Leaderboard') ||
-                       body.includes('Home') ||
-                       body.includes('VNIT') ||
-                       body.includes('Games') ||
-                       body.includes('Inter');
+            body.includes('Home') ||
+            body.includes('VNIT') ||
+            body.includes('Games') ||
+            body.includes('Inter');
         expect(hasNav).toBeTruthy();
     });
 });
@@ -439,7 +440,7 @@ test.describe('11 · Public Leaderboard', () => {
         await page.waitForTimeout(4000);
         const body = await page.textContent('body');
         const has = body.includes('Leaderboard') || body.includes('Standings') ||
-                    body.includes('pts') || body.includes('Rank');
+            body.includes('pts') || body.includes('Rank');
         expect(has).toBeTruthy();
     });
 
@@ -521,20 +522,21 @@ test.describe('14 · Match Detail Page', () => {
 test.describe('15 · Admin Login Page', () => {
 
     test('Renders form fields', async ({ page }) => {
-        await page.goto(`${BASE}/auth/login`);
-        await page.waitForTimeout(1500);
+        await page.goto(`${BASE}/${ADMIN_SECRET_PATH}/login`);
+        await page.waitForTimeout(4000);
         const body = await page.textContent('body');
         const ok = body.includes('Login') || body.includes('login') ||
-                   body.includes('Sign') || body.includes('Username');
+            body.includes('Sign') || body.includes('Username');
         expect(ok).toBeTruthy();
     });
 
-    test('/login redirects to login page', async ({ page }) => {
+    test('/login shows blocker page (honeypot)', async ({ page }) => {
         await page.goto(`${BASE}/login`);
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(4000);
         const body = await page.textContent('body');
-        const ok = body.includes('Login') || body.includes('login') || body.includes('Sign');
-        expect(ok).toBeTruthy();
+        // /login is a honeypot — it should show the AdminBlocker, not the actual login form
+        expect(body).not.toContain('Something went wrong');
+        expect((await page.content()).length).toBeGreaterThan(500);
     });
 });
 
@@ -546,17 +548,17 @@ test.describe('16 · Admin Login + Dashboard', () => {
     test('Login navigates to admin area', async ({ page }) => {
         await loginViaUI(page);
         const url = page.url();
-        expect(url.includes('/admin') && !url.includes('/login')).toBeTruthy();
+        expect(url.includes(`/${ADMIN_SECRET_PATH}`) && !url.includes('/login')).toBeTruthy();
     });
 
     test('Dashboard shows admin content', async ({ page }) => {
         await loginViaUI(page);
-        await page.goto(`${BASE}/admin/dashboard`);
+        await page.goto(`${BASE}/${ADMIN_SECRET_PATH}/dashboard`);
         await page.waitForTimeout(2000);
         const body = await page.textContent('body');
         const ok = body.includes('Dashboard') || body.includes('Overview') ||
-                   body.includes('Matches') || body.includes('Admin') ||
-                   body.includes('Total');
+            body.includes('Matches') || body.includes('Admin') ||
+            body.includes('Total');
         expect(ok).toBeTruthy();
     });
 });
@@ -568,32 +570,32 @@ test.describe('17 · Admin Leaderboard Management', () => {
 
     test('Page loads with department data', async ({ page }) => {
         await loginViaUI(page);
-        await page.goto(`${BASE}/admin/leaderboard`);
+        await page.goto(`${BASE}/${ADMIN_SECRET_PATH}/leaderboard`);
         // Wait for loading spinners to disappear
         await page.waitForFunction(() => {
             return !document.querySelector('.animate-spin') ||
-                   document.querySelectorAll('.animate-spin').length === 0;
-        }, { timeout: 10000 }).catch(() => {});
+                document.querySelectorAll('.animate-spin').length === 0;
+        }, { timeout: 10000 }).catch(() => { });
         await page.waitForTimeout(2000);
         const body = await page.textContent('body');
         const ok = body.includes('Leaderboard') || body.includes('Points') ||
-                   body.includes('Department') || body.includes('Rankings') ||
-                   body.includes('Edit') || body.includes('points');
+            body.includes('Department') || body.includes('Rankings') ||
+            body.includes('Edit') || body.includes('points');
         expect(ok).toBeTruthy();
     });
 
     test('Shows known department names', async ({ page }) => {
         await loginViaUI(page);
-        await page.goto(`${BASE}/admin/leaderboard`);
+        await page.goto(`${BASE}/${ADMIN_SECRET_PATH}/leaderboard`);
         await page.waitForFunction(() => {
             return !document.querySelector('.animate-spin') ||
-                   document.querySelectorAll('.animate-spin').length === 0;
-        }, { timeout: 10000 }).catch(() => {});
+                document.querySelectorAll('.animate-spin').length === 0;
+        }, { timeout: 10000 }).catch(() => { });
         await page.waitForTimeout(2000);
         const body = await page.textContent('body');
         const ok = body.includes('Mining') || body.includes('Computer') ||
-                   body.includes('CSE') || body.includes('Chemical') ||
-                   body.includes('Civil') || body.includes('Mechanical');
+            body.includes('CSE') || body.includes('Chemical') ||
+            body.includes('Civil') || body.includes('Mechanical');
         expect(ok).toBeTruthy();
     });
 });
@@ -603,15 +605,15 @@ test.describe('17 · Admin Leaderboard Management', () => {
 // ─────────────────────────────────────────────────────────
 test.describe('18 · All Admin Pages Load', () => {
     const pages = [
-        { path: '/admin/departments',     name: 'Departments' },
-        { path: '/admin/schedule',        name: 'Schedule Match' },
-        { path: '/admin/points',          name: 'Award Points' },
-        { path: '/admin/seasons',         name: 'Seasons' },
-        { path: '/admin/scoring-presets', name: 'Scoring Presets' },
-        { path: '/admin/users',           name: 'Admin Management' },
-        { path: '/admin/student-council', name: 'Student Council Mgmt' },
-        { path: '/admin/highlights',      name: 'Highlights Mgmt' },
-        { path: '/admin/about',           name: 'About Mgmt' },
+        { path: `/${ADMIN_SECRET_PATH}/departments`, name: 'Departments' },
+        { path: `/${ADMIN_SECRET_PATH}/schedule`, name: 'Schedule Match' },
+        { path: `/${ADMIN_SECRET_PATH}/points`, name: 'Award Points' },
+        { path: `/${ADMIN_SECRET_PATH}/seasons`, name: 'Seasons' },
+        { path: `/${ADMIN_SECRET_PATH}/scoring-presets`, name: 'Scoring Presets' },
+        { path: `/${ADMIN_SECRET_PATH}/users`, name: 'Admin Management' },
+        { path: `/${ADMIN_SECRET_PATH}/student-council`, name: 'Student Council Mgmt' },
+        { path: `/${ADMIN_SECRET_PATH}/highlights`, name: 'Highlights Mgmt' },
+        { path: `/${ADMIN_SECRET_PATH}/about`, name: 'About Mgmt' },
     ];
 
     for (const pg of pages) {
@@ -651,14 +653,24 @@ test.describe('19 · Navigation', () => {
 // ─────────────────────────────────────────────────────────
 test.describe('20 · Protected Route Redirect', () => {
 
-    test('Unauthenticated /admin → login', async ({ page }) => {
+    test('Unauthenticated /admin → blocker page (honeypot)', async ({ page }) => {
         await page.context().clearCookies();
         await page.goto(`${BASE}/admin`);
         await page.waitForTimeout(3000);
-        const url  = page.url();
+        // /admin is honeypot → shows AdminBlocker page
+        const body = await page.textContent('body');
+        expect(body).not.toContain('Something went wrong');
+        expect((await page.content()).length).toBeGreaterThan(500);
+    });
+
+    test('Unauthenticated secret admin → redirects to login', async ({ page }) => {
+        await page.context().clearCookies();
+        await page.goto(`${BASE}/${ADMIN_SECRET_PATH}/dashboard`);
+        await page.waitForTimeout(3000);
+        const url = page.url();
         const body = await page.textContent('body');
         const ok = url.includes('login') || body.includes('Login') ||
-                   body.includes('login') || body.includes('Unauthorized');
+            body.includes('login') || body.includes('Unauthorized');
         expect(ok).toBeTruthy();
     });
 });
