@@ -166,11 +166,12 @@ const Home = () => {
     };
 
     const formatDisplayDate = (dateStr) => {
-        if (dateStr === todayStr) return 'Today';
+        {/*if (dateStr === todayStr) return 'Today';
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         if (dateStr === getLocalDateStr(yesterday)) return 'Yesterday';
-        return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });*/}
+        return null;
     };
 
     const filteredMatches = useMemo(() => {

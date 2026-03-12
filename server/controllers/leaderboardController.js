@@ -1,6 +1,5 @@
 const PointLog = require('../models/PointLog');
 const Department = require('../models/Department');
-const { clearCache } = require('../utils/cache');
 
 // @desc    Award points to a department
 // @route   POST /api/leaderboard/award
@@ -21,9 +20,6 @@ const awardPoints = async (req, res) => {
             points,
             description
         });
-
-        // Invalidate leaderboard cache so next GET returns fresh data
-        clearCache('leaderboard');
 
         // Emit real-time event so public leaderboard updates instantly
         const io = req.app.get('io');
@@ -111,15 +107,6 @@ const getStandings = async (req, res) => {
             if (b.points !== a.points) return b.points - a.points;
             return (a.name || '').localeCompare(b.name || '');
         });
-
-        // Assign actual ranks (handling ties — same points = same rank)
-        let currentRank = 1;
-        for (let i = 0; i < finalStandings.length; i++) {
-            if (i > 0 && finalStandings[i].points < finalStandings[i - 1].points) {
-                currentRank = i + 1;
-            }
-            finalStandings[i].rank = currentRank;
-        }
 
         res.json({ 
             success: true, 
@@ -227,15 +214,6 @@ const getDetailedStandings = async (req, res) => {
             if (b.winPercentage !== a.winPercentage) return b.winPercentage - a.winPercentage;
             return (a.name || '').localeCompare(b.name || '');
         });
-
-        // Assign actual ranks (handling ties — same points = same rank)
-        let currentRank = 1;
-        for (let i = 0; i < standings.length; i++) {
-            if (i > 0 && standings[i].points < standings[i - 1].points) {
-                currentRank = i + 1;
-            }
-            standings[i].rank = currentRank;
-        }
 
         res.json({
             success: true,
@@ -374,9 +352,6 @@ const awardPointsFromMatch = async (req, res) => {
         // ── Mark match as points-awarded (atomic) ──
         await Match.findByIdAndUpdate(matchId, { pointsAwarded: true });
 
-        // Invalidate leaderboard cache
-        clearCache('leaderboard');
-
         // Emit real-time update
         const io = req.app.get('io');
         if (io) {
@@ -408,7 +383,6 @@ const resetLeaderboard = async (req, res) => {
         }
         
         await PointLog.deleteMany({});
-        clearCache('leaderboard');
         const io = req.app.get('io');
         if (io) {
             io.emit('leaderboardReset');
@@ -432,7 +406,6 @@ const undoLastAward = async (req, res) => {
         }
 
         await PointLog.findByIdAndDelete(lastLog._id);
-        clearCache('leaderboard');
         
         const io = req.app.get('io');
         if (io) {
@@ -454,7 +427,6 @@ const clearDepartmentPoints = async (req, res) => {
         const { deptId } = req.params;
 
         const result = await PointLog.deleteMany({ department: deptId });
-        clearCache('leaderboard');
 
         const io = req.app.get('io');
         if (io) {
@@ -535,9 +507,6 @@ const setDepartmentPoints = async (req, res) => {
             points: difference,
             description: `Admin adjusted total from ${currentTotal} to ${points}`
         });
-
-        // Invalidate leaderboard cache so next GET returns fresh data
-        clearCache('leaderboard');
 
         const io = req.app.get('io');
         if (io) {

@@ -16,11 +16,14 @@ const ThemeSwitcher = ({ compact = false }) => {
     return (
       <button
         onClick={cycleTheme}
-        className="p-2 rounded-lg transition-all duration-200 hover:scale-105"
+        className="p-2 rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-105"
         style={{
           background: 'var(--bg-tertiary)',
           border: '1px solid var(--border-color)',
           color: 'var(--color-accent)',
+          height: '40px', // Explicitly set height
+          width: '40px', // Explicitly set width
+          padding: 0, // Remove any padding that might offset the icon
         }}
         title={`Current: ${THEMES[themeKey].label} — Click to switch`}
         aria-label="Toggle theme"
