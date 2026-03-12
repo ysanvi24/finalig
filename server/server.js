@@ -56,33 +56,46 @@ const server = http.createServer(app);
 
 // Initialize Socket.io with CORS and connection settings
 const allowedOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
-  : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://10.84.186.251:5173', 'http://10.84.186.226:5173'];
+    ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+    : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://10.84.186.251:5173', 'http://10.84.186.226:5173'];
 
 app.use(cors({
     origin: function (origin, callback) {
+        // Allow server-to-server requests (no origin)
         if (!origin) return callback(null, true);
-      
-        if (
-          origin.includes("localhost") ||
-          origin.includes("127.0.0.1") ||
-          origin.startsWith("http://192.168.") ||
-          origin.startsWith("http://10.")
-        ) {
-          return callback(null, true);
+
+        // Check env-configured allowed origins (includes Vercel URL, AWS IP, etc.)
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
         }
-      
+
+        // Always allow localhost / LAN for dev
+        if (
+            origin.includes("localhost") ||
+            origin.includes("127.0.0.1") ||
+            origin.startsWith("http://192.168.") ||
+            origin.startsWith("http://10.")
+        ) {
+            return callback(null, true);
+        }
+
+        // Allow any *.vercel.app subdomain (preview deployments)
+        if (origin.endsWith('.vercel.app')) {
+            return callback(null, true);
+        }
+
+        console.warn('⚠️  CORS blocked origin:', origin);
         return callback(new Error("Not allowed by CORS"));
-      },
-  credentials: true
+    },
+    credentials: true
 }));
 
 const io = new Server(server, {
-  cors: {
-    origin: allowedOrigins,
-    methods: ['GET', 'POST'],
-    credentials: true
-  }
+    cors: {
+        origin: allowedOrigins,
+        methods: ['GET', 'POST'],
+        credentials: true
+    }
 });
 
 // Make io accessible to routes/controllers
@@ -165,7 +178,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
 if (process.env.NODE_ENV === 'production') {
     const clientBuildPath = path.join(__dirname, '../client/dist');
     console.log('📁 Serving static files from:', clientBuildPath);
-    
+
     const fs = require('fs');
     if (fs.existsSync(clientBuildPath)) {
         console.log('✅ Client build directory exists');
@@ -174,7 +187,7 @@ if (process.env.NODE_ENV === 'production') {
     } else {
         console.log('❌ Client build directory NOT found');
     }
-    
+
     app.use(express.static(clientBuildPath));
 }
 
@@ -245,7 +258,7 @@ app.get('/api/debug/db-status', async (req, res) => {
         const mongoose = require('mongoose');
         const mongoUri = process.env.MONGODB_URI || 'NOT SET';
         const maskedUri = mongoUri.replace(/\/\/.*:.*@/, '//***:***@');
-        
+
         res.json({
             status: 'ok',
             database: {
@@ -312,18 +325,18 @@ if (process.env.NODE_ENV === 'production') {
     const clientBuildPath = path.join(__dirname, '../client/dist');
     const fs = require('fs');
     const indexPath = path.join(clientBuildPath, 'index.html');
-    
+
     console.log('📍 Setting up SPA fallback route');
     console.log('📁 Index path:', indexPath);
     console.log('📄 Index exists:', fs.existsSync(indexPath));
-    
+
     // Express 5 compatible catch-all - use app.use() instead of app.get('*')
     app.use((req, res, next) => {
         // Don't interfere with API routes or uploads
         if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
             return next();
         }
-        
+
         console.log('🔄 SPA fallback for:', req.path);
         res.sendFile(indexPath, (err) => {
             if (err) {
