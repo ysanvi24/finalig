@@ -8,6 +8,14 @@
       "destination": "http://13.204.112.229/api/:path*"
     },
     {
+      "source": "/socket.io",
+      "destination": "http://13.204.112.229/socket.io"
+    },
+    {
+      "source": "/socket.io/",
+      "destination": "http://13.204.112.229/socket.io/"
+    },
+    {
       "source": "/socket.io/:path*",
       "destination": "http://13.204.112.229/socket.io/:path*"
     },

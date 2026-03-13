@@ -1,38 +1,42 @@
 import { io } from 'socket.io-client';
 
-// In development, use WebSocket directly to the local backend.
-// In production, connect DIRECTLY to the AWS backend (not through Vercel).
-// Vercel serverless rewrites can't maintain socket.io polling sessions
-// because each polling request hits a different serverless function instance.
+// ── Socket.io Connection Strategy ──
+// Dev:  WebSocket + polling directly to localhost:5000 (fast, no proxy)
+// Prod: polling-only through Vercel rewrites (vercel.json rewrites
+//       /socket.io/* → http://13.204.112.229/socket.io/*).
+//       Browser sees same-origin HTTPS requests → no mixed content.
+//       WebSocket can't traverse Vercel serverless edge, so polling only.
+//       If VITE_SOCKET_URL is set (e.g. after adding HTTPS to EC2),
+//       both WebSocket + polling are used for lower latency.
 const isDev = import.meta.env.DEV;
 
-// In dev: connect to local backend.
-// In prod: connect directly to the AWS backend via VITE_SOCKET_URL.
-// Falls back to same origin (but Vercel proxy won't work for socket.io).
+// In dev: connect to local backend. In prod: use Vercel origin (rewrites
+// proxy to AWS), or explicit VITE_SOCKET_URL if configured.
 const SOCKET_URL = isDev
     ? (import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000')
     : (import.meta.env.VITE_SOCKET_URL || window.location.origin);
 
-// Use WebSocket in dev (fast). In prod: try WebSocket first (direct to AWS),
-// fall back to polling. Since we bypass Vercel, WebSocket upgrades work.
-const TRANSPORTS = isDev ? ['websocket', 'polling'] : ['websocket', 'polling'];
+// Dev: WebSocket first (fast). Prod without explicit URL: polling-only
+// (goes through Vercel rewrites). Prod with VITE_SOCKET_URL: both.
+const TRANSPORTS = isDev
+    ? ['websocket', 'polling']
+    : (import.meta.env.VITE_SOCKET_URL ? ['websocket', 'polling'] : ['polling']);
 
 if (isDev) console.log('🔌 Socket connecting to:', SOCKET_URL, 'via', TRANSPORTS);
 
 export const socket = io(SOCKET_URL, {
     autoConnect: true,
     reconnection: true,
-    reconnectionAttempts: Infinity,  // Keep trying forever (campus Wi-Fi drops)
+    reconnectionAttempts: Infinity,  // Keep trying (campus Wi-Fi drops)
     reconnectionDelay: 1000,
     reconnectionDelayMax: 5000,
     timeout: 20000,
     connectTimeout: 45000,
     transports: TRANSPORTS,
     withCredentials: false,
-    upgrade: true,        // Allow upgrading from polling to WebSocket
+    upgrade: !isDev && !import.meta.env.VITE_SOCKET_URL ? false : true,
     forceNew: false,
     multiplex: true,
-    // Keep connection alive
     pingTimeout: 60000,
     pingInterval: 25000
 });
@@ -59,10 +63,18 @@ if (isDev) {
     socket.on('disconnect', (reason) => console.warn('⚠️  Socket disconnected:', reason));
 }
 
-// Always log connect errors in production too (helps debug deployment issues)
+// In production, only log the first connection error (not every retry)
 if (!isDev) {
+    let errorLogged = false;
     socket.on('connect_error', (error) => {
-        console.warn('⚠️ Socket connection error:', error.message);
+        if (!errorLogged) {
+            console.warn('⚠️ Socket connection error:', error.message);
+            errorLogged = true;
+        }
+    });
+    socket.on('connect', () => {
+        errorLogged = false;
+        console.info('✅ Socket.io connected via', socket.io.engine.transport.name);
     });
 }
 

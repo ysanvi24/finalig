@@ -9,9 +9,7 @@ const Footer = () => (
         }}
     >
         <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            Developed by:{' '}Chinmay Sabharwal, Anshul Jain, Sanvi Y
-            <br />
-            Mentored by:{' '}Vedant Singh, Jayesh Patil
+            Developed by:{' '} ACM Student Chapter,VNIT    
         </p>
         <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
             © 2026 शाश्वतम् Institute Gathering. All rights reserved.

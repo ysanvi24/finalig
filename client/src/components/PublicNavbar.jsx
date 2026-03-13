@@ -14,8 +14,8 @@ const PublicNavbar = () => {
     const isActive = (path) => location.pathname === path;
 
     const navItems = [
-        { label: 'Live 1v1', path: '/', icon: Radio },
-        { label: 'Group Events', path: '/events', icon: Sparkles },
+        { label: 'League Events', path: '/', icon: Radio },
+        { label: 'Non League Events', path: '/events', icon: Sparkles },
         { label: 'Leaderboard', path: '/leaderboard', icon: Trophy },
         { label: 'About', path: '/about', icon: BookOpen },
         { label: 'Council', path: '/student-council', icon: GraduationCap }
