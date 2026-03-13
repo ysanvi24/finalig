@@ -1,18 +1,21 @@
 import { io } from 'socket.io-client';
 
 // In development, use WebSocket directly to the local backend.
-// In production on Vercel, WebSocket upgrades (wss://) are not supported
-// through Vercel Rewrites, so we use HTTP long-polling instead.
-// Polling still delivers real-time score updates — just via HTTP POST/GET.
+// In production, connect DIRECTLY to the AWS backend (not through Vercel).
+// Vercel serverless rewrites can't maintain socket.io polling sessions
+// because each polling request hits a different serverless function instance.
 const isDev = import.meta.env.DEV;
 
-// In dev: connect to local backend. In prod: same origin (routes through Vercel proxy)
+// In dev: connect to local backend.
+// In prod: connect directly to the AWS backend via VITE_SOCKET_URL.
+// Falls back to same origin (but Vercel proxy won't work for socket.io).
 const SOCKET_URL = isDev
     ? (import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000')
-    : window.location.origin;
+    : (import.meta.env.VITE_SOCKET_URL || window.location.origin);
 
-// Use WebSocket in dev (fast), polling in prod (works through Vercel proxy)
-const TRANSPORTS = isDev ? ['websocket', 'polling'] : ['polling'];
+// Use WebSocket in dev (fast). In prod: try WebSocket first (direct to AWS),
+// fall back to polling. Since we bypass Vercel, WebSocket upgrades work.
+const TRANSPORTS = isDev ? ['websocket', 'polling'] : ['websocket', 'polling'];
 
 if (isDev) console.log('🔌 Socket connecting to:', SOCKET_URL, 'via', TRANSPORTS);
 
@@ -26,7 +29,7 @@ export const socket = io(SOCKET_URL, {
     connectTimeout: 45000,
     transports: TRANSPORTS,
     withCredentials: false,
-    upgrade: false,     // Don't try to upgrade from polling to WebSocket in prod
+    upgrade: true,        // Allow upgrading from polling to WebSocket
     forceNew: false,
     multiplex: true,
     // Keep connection alive
