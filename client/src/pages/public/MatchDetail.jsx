@@ -132,7 +132,7 @@ const MatchDetail = () => {
                                     style={!isWinner(match.teamA) ? { color: theme.textPrimary } : undefined}>
                                     {getTeamShort(match.teamA)}
                                 </div>
-                                <div className="text-xs mb-2 truncate" style={{ color: theme.textMuted }}>{getTeamName(match.teamA)}</div>
+                                <div className="text-xs mb-2 truncate" style={{ color: theme.textMuted }}>{/*getTeamName(match.teamA)*/}</div>
                                 {isCompleted && match.scoreA && (
                                     <div className="text-2xl font-bold" style={{ color: theme.accent }}>{match.scoreA}</div>
                                 )}
@@ -157,7 +157,7 @@ const MatchDetail = () => {
                                     style={!isWinner(match.teamB) ? { color: theme.textPrimary } : undefined}>
                                     {getTeamShort(match.teamB)}
                                 </div>
-                                <div className="text-xs mb-2 truncate" style={{ color: theme.textMuted }}>{getTeamName(match.teamB)}</div>
+                                <div className="text-xs mb-2 truncate" style={{ color: theme.textMuted }}>{/*getTeamName(match.teamB)*/}</div>
                                 {isCompleted && match.scoreB && (
                                     <div className="text-2xl font-bold" style={{ color: theme.accent }}>{match.scoreB}</div>
                                 )}
