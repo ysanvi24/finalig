@@ -14,7 +14,7 @@ const login = async (req, res) => {
         const mongoose = require('mongoose');
         if (mongoose.connection.readyState !== 1) {
             console.error('LOGIN FAILED: MongoDB not connected! readyState:', mongoose.connection.readyState);
-            return res.status(503).json({ 
+            return res.status(503).json({
                 message: 'Database not connected. Check server terminal for errors.',
                 hint: 'Your IP may not be whitelisted in MongoDB Atlas'
             });
@@ -33,14 +33,14 @@ const login = async (req, res) => {
 
         // Support both username and studentId login
         const loginId = studentId || username;
-        
+
         if (!loginId || !password) {
             return res.status(400).json({ message: 'Username and password are required' });
         }
 
         console.log('LOGIN attempt for:', loginId);
 
-        const admin = await Admin.findOne({ 
+        const admin = await Admin.findOne({
             $or: [
                 { username: loginId },
                 { studentId: loginId },
@@ -56,9 +56,9 @@ const login = async (req, res) => {
         // Check if account is active
         if (!admin.isActive) {
             console.log('LOGIN FAILED: Account suspended for:', loginId);
-            return res.status(403).json({ 
+            return res.status(403).json({
                 message: 'Account suspended',
-                reason: admin.suspensionReason 
+                reason: admin.suspensionReason
             });
         }
 
@@ -96,7 +96,7 @@ const login = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message });
     }
 };
 
@@ -123,7 +123,7 @@ const googleCallback = async (req, res) => {
         if (!admin) {
             // Check if email is a VNIT student email
             const isVNITEmail = email?.match(/^[a-z]{2}\d{2}[a-z]{3}\d{3}@students\.vnit\.ac\.in$/);
-            
+
             // Create new admin from Google profile
             admin = await Admin.create({
                 googleId,
@@ -135,7 +135,7 @@ const googleCallback = async (req, res) => {
                 role: 'viewer', // New OAuth users start as viewers
                 isTrusted: false // Must be verified by super_admin
             });
-            
+
             // Extract student ID from VNIT email if applicable
             if (isVNITEmail) {
                 const match = email.match(/\d{2}[a-z]{3}(\d{3})/);
@@ -156,9 +156,9 @@ const googleCallback = async (req, res) => {
 
         // Check if account is active
         if (!admin.isActive) {
-            return res.status(403).json({ 
+            return res.status(403).json({
                 message: 'Account suspended',
-                reason: admin.suspensionReason 
+                reason: admin.suspensionReason
             });
         }
 
@@ -296,7 +296,7 @@ const getMe = async (req, res) => {
             .populate('department', 'name shortCode logo')
             .populate('lockedMatches.match', 'sport teamA teamB status')
             .select('-password');
-        
+
         res.json({
             success: true,
             data: admin
@@ -312,15 +312,15 @@ const getMe = async (req, res) => {
 const updateMe = async (req, res) => {
     try {
         const { name, phone, profilePicture } = req.body;
-        
+
         const admin = await Admin.findById(req.admin._id);
-        
+
         if (name) admin.name = name;
         if (phone !== undefined) admin.phone = phone;
         if (profilePicture) admin.profilePicture = profilePicture;
-        
+
         await admin.save();
-        
+
         res.json({
             success: true,
             data: admin.getPublicProfile()
@@ -336,23 +336,23 @@ const updateMe = async (req, res) => {
 const changePassword = async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
-        
+
         const admin = await Admin.findById(req.admin._id).select('+password');
-        
+
         if (!admin.password) {
-            return res.status(400).json({ 
-                message: 'Cannot change password for OAuth accounts' 
+            return res.status(400).json({
+                message: 'Cannot change password for OAuth accounts'
             });
         }
-        
+
         const isMatch = await admin.comparePassword(currentPassword);
         if (!isMatch) {
             return res.status(400).json({ message: 'Current password is incorrect' });
         }
-        
+
         admin.password = newPassword;
         await admin.save();
-        
+
         res.json({
             success: true,
             message: 'Password changed successfully'
