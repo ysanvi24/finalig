@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Trophy, Medal, Award } from 'lucide-react';
-import axios from 'axios';
-import { useSocket } from '../context/SocketContext';
+import api from '../api/axios';
+import socket from '../socket';
 
 const Leaderboard = () => {
     const [teams, setTeams] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { socket } = useSocket() || {};
 
     const fetchLeaderboard = async () => {
         try {
-            const { data } = await axios.get('/api/leaderboard');
+            const { data } = await api.get('/leaderboard');
+            const items = data.data || data || [];
             // Sort by total points descending
-            const sorted = (data || []).sort((a, b) => (b.totalPoints || b.points || 0) - (a.totalPoints || a.points || 0));
+            const sorted = (Array.isArray(items) ? items : []).sort((a, b) => (b.totalPoints || b.points || 0) - (a.totalPoints || a.points || 0));
             setTeams(sorted);
         } catch (err) {
             console.error('Failed to fetch leaderboard:', err);
@@ -27,15 +27,16 @@ const Leaderboard = () => {
     }, []);
 
     useEffect(() => {
-        if (!socket) return;
         const handler = () => fetchLeaderboard();
         socket.on('pointsAwarded', handler);
         socket.on('leaderboardReset', handler);
+        socket.on('leaderboardUpdate', handler);
         return () => {
             socket.off('pointsAwarded', handler);
             socket.off('leaderboardReset', handler);
+            socket.off('leaderboardUpdate', handler);
         };
-    }, [socket]);
+    }, []);
 
     const getRankIcon = (index) => {
         if (index === 0) return <Trophy className="w-6 h-6 text-yellow-500" />;

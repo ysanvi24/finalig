@@ -337,8 +337,12 @@ async function _awardBracketPoints(oe, io, adminId) {
   await Match.updateMany({ officialEvent: oe._id }, { pointsAwarded: true });
 
   clearCache('leaderboard');
-  if (io) io.emit('leaderboardUpdate', { source: 'bracket', eventNumber: oe.eventNumber });
-  if (io) io.emit('bracketAwarded', { eventNumber: oe.eventNumber, officialEvent: oe._id });
+  if (io) {
+    io.emit('leaderboardUpdate', { source: 'bracket', eventNumber: oe.eventNumber });
+    io.emit('bracketAwarded', { eventNumber: oe.eventNumber, officialEvent: oe._id });
+    // Also emit pointsAwarded — client leaderboard pages listen to this
+    io.emit('pointsAwarded', { source: 'bracket', eventNumber: oe.eventNumber });
+  }
 }
 
 /**

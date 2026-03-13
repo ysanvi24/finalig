@@ -219,13 +219,17 @@ const awardEventPoints = asyncHandler(async (req, res) => {
     event.pointsAwarded = true;
     await event.save();
 
-    // Clear leaderboard cache
+    // Clear leaderboard cache so next GET returns fresh data
     const { clearCache } = require('../utils/cache');
-    if (clearCache) clearCache();
+    if (clearCache) clearCache('leaderboard');
 
     const io = req.app.get('io');
-    if (io) io.emit('eventUpdate', { _id: event._id, pointsAwarded: true });
-    if (io) io.emit('leaderboardUpdate', { source: 'event', eventId: event._id });
+    if (io) {
+        io.emit('eventUpdate', { _id: event._id, pointsAwarded: true });
+        io.emit('leaderboardUpdate', { source: 'event', eventId: event._id });
+        // Also emit pointsAwarded — client leaderboard pages listen to this
+        io.emit('pointsAwarded', { source: 'event', eventId: event._id });
+    }
 
     res.json({
         success: true,
@@ -323,11 +327,15 @@ const assignRanks = asyncHandler(async (req, res) => {
     await event.save();
 
     const { clearCache } = require('../utils/cache');
-    if (clearCache) clearCache();
+    if (clearCache) clearCache('leaderboard');
 
     const io = req.app.get('io');
-    if (io) io.emit('eventUpdate', { _id: event._id, pointsAwarded: true });
-    if (io) io.emit('leaderboardUpdate', { source: 'groupEvent', eventId: event._id, eventNumber });
+    if (io) {
+        io.emit('eventUpdate', { _id: event._id, pointsAwarded: true });
+        io.emit('leaderboardUpdate', { source: 'groupEvent', eventId: event._id, eventNumber });
+        // Also emit pointsAwarded — client leaderboard pages listen to this
+        io.emit('pointsAwarded', { source: 'groupEvent', eventId: event._id, eventNumber });
+    }
 
     res.json({
         success: true,

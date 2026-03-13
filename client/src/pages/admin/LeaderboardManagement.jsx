@@ -16,9 +16,11 @@ const LeaderboardManagement = () => {
         fetchLeaderboard();
         const handlePointsAwarded = () => fetchLeaderboard();
         const handleReset = () => fetchLeaderboard();
+        const handleLeaderboardUpdate = () => fetchLeaderboard();
         socket.on('pointsAwarded', handlePointsAwarded);
         socket.on('leaderboardReset', handleReset);
-        return () => { socket.off('pointsAwarded', handlePointsAwarded); socket.off('leaderboardReset', handleReset); };
+        socket.on('leaderboardUpdate', handleLeaderboardUpdate);
+        return () => { socket.off('pointsAwarded', handlePointsAwarded); socket.off('leaderboardReset', handleReset); socket.off('leaderboardUpdate', handleLeaderboardUpdate); };
     }, []);
 
     const fetchLeaderboard = async () => {

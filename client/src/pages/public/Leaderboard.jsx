@@ -53,6 +53,7 @@ const Leaderboard = () => {
 
         socket.on('pointsAwarded', fetchStandings);
         socket.on('leaderboardReset', fetchStandings);
+        socket.on('leaderboardUpdate', fetchStandings);
 
         const debouncedFetch = () => {
             clearTimeout(debounceRef.current);
@@ -64,6 +65,7 @@ const Leaderboard = () => {
             clearTimeout(debounceRef.current);
             socket.off('pointsAwarded', fetchStandings);
             socket.off('leaderboardReset', fetchStandings);
+            socket.off('leaderboardUpdate', fetchStandings);
             socket.off('matchUpdate', debouncedFetch);
         };
     }, [fetchStandings]);

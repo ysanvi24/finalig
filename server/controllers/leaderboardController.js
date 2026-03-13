@@ -1,5 +1,6 @@
 const PointLog = require('../models/PointLog');
 const Department = require('../models/Department');
+const { clearCache } = require('../utils/cache');
 
 // @desc    Award points to a department
 // @route   POST /api/leaderboard/award
@@ -21,6 +22,9 @@ const awardPoints = async (req, res) => {
             description
         });
 
+        // Clear leaderboard cache so next GET returns fresh data
+        clearCache('leaderboard');
+
         // Emit real-time event so public leaderboard updates instantly
         const io = req.app.get('io');
         if (io) {
@@ -41,7 +45,7 @@ const getStandings = async (req, res) => {
     try {
         console.log('📍 getStandings: Starting request');
         const startTime = Date.now();
-        
+
         const standings = await PointLog.aggregate([
             {
                 $group: {
@@ -108,16 +112,16 @@ const getStandings = async (req, res) => {
             return (a.name || '').localeCompare(b.name || '');
         });
 
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             count: finalStandings.length,
             data: finalStandings,
             timestamp: new Date().toISOString()
         });
     } catch (error) {
         console.error('❌ getStandings Error:', error.message);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: 'Server error',
             error: error.message,
             timestamp: new Date().toISOString()
@@ -145,11 +149,13 @@ const getDetailedStandings = async (req, res) => {
             // Match statistics per department (1 query via $facet)
             Match.aggregate([
                 { $match: { status: 'COMPLETED' } },
-                { $facet: {
-                    teamA: [{ $group: { _id: '$teamA', count: { $sum: 1 } } }],
-                    teamB: [{ $group: { _id: '$teamB', count: { $sum: 1 } } }],
-                    wins:  [{ $group: { _id: '$winner', count: { $sum: 1 } } }]
-                }}
+                {
+                    $facet: {
+                        teamA: [{ $group: { _id: '$teamA', count: { $sum: 1 } } }],
+                        teamB: [{ $group: { _id: '$teamB', count: { $sum: 1 } } }],
+                        wins: [{ $group: { _id: '$winner', count: { $sum: 1 } } }]
+                    }
+                }
             ]),
 
             // Wins by sport per department (1 query)
@@ -172,7 +178,7 @@ const getDetailedStandings = async (req, res) => {
         const matchData = matchAgg[0] || { teamA: [], teamB: [], wins: [] };
         const teamAMap = new Map(matchData.teamA.map(t => [t._id.toString(), t.count]));
         const teamBMap = new Map(matchData.teamB.map(t => [t._id.toString(), t.count]));
-        const winsMap  = new Map(matchData.wins.filter(w => w._id).map(w => [w._id.toString(), w.count]));
+        const winsMap = new Map(matchData.wins.filter(w => w._id).map(w => [w._id.toString(), w.count]));
 
         const sportWinsMap = new Map();
         for (const sw of sportWinAgg) {
@@ -223,10 +229,10 @@ const getDetailedStandings = async (req, res) => {
         });
     } catch (error) {
         console.error('❌ getDetailedStandings Error:', error.message);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             message: 'Server error',
-            error: error.message 
+            error: error.message
         });
     }
 };
@@ -239,16 +245,16 @@ const awardPointsFromMatch = async (req, res) => {
         const { matchId } = req.body;
         const { Match } = require('../models/Match');
         const ScoringPreset = require('../models/ScoringPreset');
-        
+
         const match = await Match.findById(matchId)
             .populate('teamA', 'name shortCode')
             .populate('teamB', 'name shortCode')
             .populate('winner', 'name shortCode');
-        
+
         if (!match) {
             return res.status(404).json({ message: 'Match not found' });
         }
-        
+
         if (match.status !== 'COMPLETED') {
             return res.status(400).json({ message: 'Match is not completed' });
         }
@@ -260,32 +266,32 @@ const awardPointsFromMatch = async (req, res) => {
                 message: 'Points have already been awarded for this match'
             });
         }
-        
+
         // Get scoring preset
         const preset = await ScoringPreset.findOne({
             sport: match.sport,
             isDefault: true,
             isActive: true
         });
-        
+
         if (!preset) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 message: 'No scoring preset found for this sport',
-                sport: match.sport 
+                sport: match.sport
             });
         }
-        
+
         // Calculate points
         const matchCategoryKey = (match.matchCategory || 'REGULAR').toLowerCase();
         const multiplier = preset.matchTypeMultipliers?.[matchCategoryKey] || 1;
         const isDraw = !match.winner;
-        
+
         const logs = [];
-        
+
         if (isDraw) {
             // Award draw points to both
             const drawPoints = Math.round(preset.drawPoints * multiplier);
-            
+
             logs.push(await PointLog.create({
                 department: match.teamA._id,
                 eventName: `${match.sport} - ${match.matchCategory || 'Match'}`,
@@ -294,7 +300,7 @@ const awardPointsFromMatch = async (req, res) => {
                 points: drawPoints,
                 description: `Draw vs ${match.teamB.shortCode}`
             }));
-            
+
             logs.push(await PointLog.create({
                 department: match.teamB._id,
                 eventName: `${match.sport} - ${match.matchCategory || 'Match'}`,
@@ -312,20 +318,20 @@ const awardPointsFromMatch = async (req, res) => {
                 const numB = parseInt(match.scoreB) || 0;
                 scoreDiff = Math.abs(numA - numB);
             }
-            
+
             let winPoints = Math.round(preset.winPoints * multiplier);
             let lossPoints = Math.round(preset.lossPoints * multiplier);
-            
+
             // Add bonus for dominant victory
             if (preset.bonusPoints && preset.dominantVictoryMargin) {
                 if (scoreDiff >= preset.dominantVictoryMargin) {
                     winPoints += preset.bonusPoints;
                 }
             }
-            
-            const loser = match.winner._id.toString() === match.teamA._id.toString() 
+
+            const loser = match.winner._id.toString() === match.teamA._id.toString()
                 ? match.teamB : match.teamA;
-            
+
             // Award winner points
             logs.push(await PointLog.create({
                 department: match.winner._id,
@@ -335,7 +341,7 @@ const awardPointsFromMatch = async (req, res) => {
                 points: winPoints,
                 description: `Won vs ${loser.shortCode}`
             }));
-            
+
             // Award loser points (if any)
             if (lossPoints !== 0) {
                 logs.push(await PointLog.create({
@@ -348,16 +354,19 @@ const awardPointsFromMatch = async (req, res) => {
                 }));
             }
         }
-        
+
         // ── Mark match as points-awarded (atomic) ──
         await Match.findByIdAndUpdate(matchId, { pointsAwarded: true });
+
+        // Clear leaderboard cache
+        clearCache('leaderboard');
 
         // Emit real-time update
         const io = req.app.get('io');
         if (io) {
             io.emit('pointsAwarded', { matchId, logs });
         }
-        
+
         res.json({
             success: true,
             message: 'Points awarded from match',
@@ -376,13 +385,14 @@ const resetLeaderboard = async (req, res) => {
     try {
         // Check if user is super_admin
         if (req.admin?.role !== 'super_admin') {
-            return res.status(403).json({ 
-                success: false, 
-                message: 'Only super admin can reset the leaderboard' 
+            return res.status(403).json({
+                success: false,
+                message: 'Only super admin can reset the leaderboard'
             });
         }
-        
+
         await PointLog.deleteMany({});
+        clearCache('leaderboard');
         const io = req.app.get('io');
         if (io) {
             io.emit('leaderboardReset');
@@ -400,13 +410,15 @@ const resetLeaderboard = async (req, res) => {
 const undoLastAward = async (req, res) => {
     try {
         const lastLog = await PointLog.findOne().sort({ createdAt: -1 });
-        
+
         if (!lastLog) {
             return res.status(400).json({ success: false, message: 'No awards to undo' });
         }
 
         await PointLog.findByIdAndDelete(lastLog._id);
-        
+
+        clearCache('leaderboard');
+
         const io = req.app.get('io');
         if (io) {
             io.emit('pointsAwarded');
@@ -428,6 +440,8 @@ const clearDepartmentPoints = async (req, res) => {
 
         const result = await PointLog.deleteMany({ department: deptId });
 
+        clearCache('leaderboard');
+
         const io = req.app.get('io');
         if (io) {
             io.emit('pointsAwarded');
@@ -447,18 +461,18 @@ const getDepartmentHistory = async (req, res) => {
     try {
         const { deptId } = req.params;
         const { limit = 20, page = 1 } = req.query;
-        
+
         const logs = await PointLog.find({ department: deptId })
             .sort({ createdAt: -1 })
             .limit(parseInt(limit))
             .skip((parseInt(page) - 1) * parseInt(limit));
-        
+
         const total = await PointLog.countDocuments({ department: deptId });
         const totalPoints = await PointLog.aggregate([
             { $match: { department: new (require('mongoose').Types.ObjectId)(deptId) } },
             { $group: { _id: null, total: { $sum: '$points' } } }
         ]);
-        
+
         res.json({
             success: true,
             count: logs.length,
@@ -507,6 +521,8 @@ const setDepartmentPoints = async (req, res) => {
             points: difference,
             description: `Admin adjusted total from ${currentTotal} to ${points}`
         });
+
+        clearCache('leaderboard');
 
         const io = req.app.get('io');
         if (io) {

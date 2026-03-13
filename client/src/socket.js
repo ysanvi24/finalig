@@ -22,7 +22,7 @@ if (isDev) console.log('🔌 Socket connecting to:', SOCKET_URL, 'via', TRANSPOR
 export const socket = io(SOCKET_URL, {
     autoConnect: true,
     reconnection: true,
-    reconnectionAttempts: 10,
+    reconnectionAttempts: Infinity,  // Keep trying forever (campus Wi-Fi drops)
     reconnectionDelay: 1000,
     reconnectionDelayMax: 5000,
     timeout: 20000,
@@ -57,6 +57,13 @@ if (isDev) {
     socket.on('reconnect_failed', () => console.error('❌ Socket reconnection failed after all attempts'));
     socket.on('connect_error', (error) => console.error('❌ Socket connection error:', error.message));
     socket.on('disconnect', (reason) => console.warn('⚠️  Socket disconnected:', reason));
+}
+
+// Always log connect errors in production too (helps debug deployment issues)
+if (!isDev) {
+    socket.on('connect_error', (error) => {
+        console.warn('⚠️ Socket connection error:', error.message);
+    });
 }
 
 // Always handle server-initiated disconnect (reconnect automatically)
