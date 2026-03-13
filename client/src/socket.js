@@ -1,12 +1,20 @@
 import { io } from 'socket.io-client';
 
-// In development, connect to backend server directly
-// In production, use same origin (frontend serves from backend)
+// In development, use WebSocket directly to the local backend.
+// In production on Vercel, WebSocket upgrades (wss://) are not supported
+// through Vercel Rewrites, so we use HTTP long-polling instead.
+// Polling still delivers real-time score updates — just via HTTP POST/GET.
 const isDev = import.meta.env.DEV;
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL
-    || (isDev ? 'http://localhost:5000' : window.location.origin);
 
-if (isDev) console.log('🔌 Socket connecting to:', SOCKET_URL);
+// In dev: connect to local backend. In prod: same origin (routes through Vercel proxy)
+const SOCKET_URL = isDev
+    ? (import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000')
+    : window.location.origin;
+
+// Use WebSocket in dev (fast), polling in prod (works through Vercel proxy)
+const TRANSPORTS = isDev ? ['websocket', 'polling'] : ['polling'];
+
+if (isDev) console.log('🔌 Socket connecting to:', SOCKET_URL, 'via', TRANSPORTS);
 
 export const socket = io(SOCKET_URL, {
     autoConnect: true,
@@ -16,12 +24,12 @@ export const socket = io(SOCKET_URL, {
     reconnectionDelayMax: 5000,
     timeout: 20000,
     connectTimeout: 45000,
-    transports: ['websocket', 'polling'],
+    transports: TRANSPORTS,
     withCredentials: false,
-    upgrade: true,
+    upgrade: false,     // Don't try to upgrade from polling to WebSocket in prod
     forceNew: false,
     multiplex: true,
-    // Prevent premature disconnections
+    // Keep connection alive
     pingTimeout: 60000,
     pingInterval: 25000
 });
