@@ -93,7 +93,16 @@ app.use(cors({
 
 const io = new Server(server, {
     cors: {
-        origin: allowedOrigins,
+        origin: function (origin, callback) {
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.includes(origin)) return callback(null, true);
+            if (origin.includes('localhost') || origin.includes('127.0.0.1') ||
+                origin.startsWith('http://192.168.') || origin.startsWith('http://10.')) {
+                return callback(null, true);
+            }
+            if (origin.endsWith('.vercel.app')) return callback(null, true);
+            return callback(new Error('Not allowed by CORS'));
+        },
         methods: ['GET', 'POST'],
         credentials: true
     }
